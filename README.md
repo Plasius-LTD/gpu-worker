@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@plasius/gpu-worker)](https://www.npmjs.com/package/@plasius/gpu-worker)
 [![CI](https://github.com/Plasius-LTD/gpu-worker/actions/workflows/ci.yml/badge.svg)](https://github.com/Plasius-LTD/gpu-worker/actions/workflows/ci.yml)
-[![license](https://img.shields.io/npm/l/@plasius/gpu-worker)](./LICENSE)
+[![license](https://img.shields.io/github/license/Plasius-LTD/gpu-worker)](./LICENSE)
 
 A WebGPU worker runtime that builds on `@plasius/gpu-lock-free-queue` to schedule WGSL workloads like ray tracing, physics, and acoustics.
 
