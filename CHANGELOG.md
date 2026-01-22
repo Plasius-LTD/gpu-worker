@@ -15,7 +15,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Build outputs now ship as ESM and CJS bundles with the WGSL asset in `dist/`.
 
 - **Fixed**
-  - (placeholder)
+  - CJS builds no longer warn on `import.meta` when resolving `worker.wgsl`.
 
 - **Security**
   - (placeholder)
