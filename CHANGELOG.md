@@ -9,7 +9,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - Unit tests for WGSL loading/assembly with coverage output for CI.
 
 - **Changed**
   - Build outputs now ship as ESM and CJS bundles with the WGSL asset in `dist/`.
