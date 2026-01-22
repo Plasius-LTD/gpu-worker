@@ -20,6 +20,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Security**
   - (placeholder)
 
+## [0.1.0] - 2026-01-22
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
 ## [0.1.0-beta.1] - 2026-01-22
 
 - **Added**
@@ -55,5 +69,6 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.0-beta.1...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.0...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
+[0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
