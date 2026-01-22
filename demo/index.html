@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plasius GPU Worker - Ray Tracing Demo</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f7f2e9;
+        --ink: #231f19;
+        --accent: #d9895b;
+        --panel: rgba(255, 255, 255, 0.82);
+        --shadow: rgba(35, 31, 25, 0.18);
+      }
+      body {
+        margin: 0;
+        padding: 28px;
+        min-height: 100vh;
+        font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        background: radial-gradient(circle at 15% 15%, #fdf7ed 0%, #f1e4d4 48%, #d8c3ad 100%);
+        color: var(--ink);
+      }
+      .shell {
+        max-width: 980px;
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+      }
+      header {
+        display: grid;
+        gap: 12px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 32px;
+        letter-spacing: 0.02em;
+      }
+      .tagline {
+        max-width: 720px;
+        font-size: 16px;
+      }
+      .panel {
+        background: var(--panel);
+        border-radius: 18px;
+        border: 1px solid rgba(35, 31, 25, 0.12);
+        padding: 18px 20px;
+        box-shadow: 0 14px 36px var(--shadow);
+      }
+      pre {
+        margin: 0;
+        padding: 14px 16px;
+        background: #1b1712;
+        color: #fef7ed;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.4;
+        max-height: 220px;
+        overflow: auto;
+      }
+      canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 16px;
+        border: 1px solid rgba(35, 31, 25, 0.18);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+        background: #101010;
+      }
+      .note {
+        font-size: 14px;
+        color: rgba(35, 31, 25, 0.75);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <h1>GPU Worker · Ray Tracing Queue</h1>
+        <p class="tagline">
+          This demo enqueues WGSL ray tracing jobs into a lock-free GPU queue and dispatches tiles
+          directly on the GPU.
+        </p>
+      </header>
+      <section class="panel">
+        <pre id="log">Booting WebGPU…</pre>
+      </section>
+      <section class="panel">
+        <canvas id="frame" width="640" height="360"></canvas>
+        <p class="note">WebGPU requires a secure context (localhost or HTTPS).</p>
+      </section>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@plasius/gpu-lock-free-queue": "../node_modules/@plasius/gpu-lock-free-queue/src/index.js"
+        }
+      }
+    </script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

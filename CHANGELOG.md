@@ -1,0 +1,45 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
+
+---
+
+## [Unreleased]
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
+  - Build outputs now ship as ESM and CJS bundles with the WGSL asset in `dist/`.
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.1.0-beta.1]
+
+- **Added**
+  - Initial beta release with lock-free GPU job queue integration.
+  - WGSL worker module and helper utilities.
+  - Ray tracing demo.
+
+---
+
+## Release process (maintainers)
+
+1. Update `CHANGELOG.md` under **Unreleased** with user-visible changes.
+2. Bump version in `package.json` following SemVer (major/minor/patch).
+3. Move entries from **Unreleased** to a new version section with the current date.
+4. Tag the release in Git (`vX.Y.Z`) and push tags.
+5. Publish to npm (via CI/CD or `npm publish`).
+
+> Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
+
+---
+
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.0-beta.1...HEAD
+[0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1

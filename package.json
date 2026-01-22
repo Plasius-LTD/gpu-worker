@@ -1,0 +1,77 @@
+{
+  "name": "@plasius/gpu-worker",
+  "version": "0.1.0-beta.1",
+  "description": "WebGPU worker runtime with a lock-free job queue for WGSL workloads.",
+  "type": "module",
+  "sideEffects": false,
+  "private": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "legal"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./worker.wgsl": "./dist/worker.wgsl",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup && cp src/worker.wgsl dist/worker.wgsl",
+    "demo": "python3 -m http.server",
+    "test": "npm run test:unit",
+    "test:unit": "node --test",
+    "test:e2e": "npx playwright install chromium && playwright test",
+    "test:coverage": "c8 --reporter=lcov --reporter=text node --test"
+  },
+  "keywords": [
+    "webgpu",
+    "worker",
+    "queue",
+    "wgsl",
+    "gpu",
+    "compute",
+    "raytracing",
+    "physics",
+    "acoustics",
+    "plasius"
+  ],
+  "author": "Plasius LTD <development@plasius.co.uk>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@plasius/gpu-lock-free-queue": "^0.1.1-beta.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "c8": "^10.1.3",
+    "tsup": "^8.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Plasius-LTD/gpu-worker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Plasius-LTD/gpu-worker/issues"
+  },
+  "homepage": "https://github.com/Plasius-LTD/gpu-worker#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "funding": [
+    {
+      "type": "patreon",
+      "url": "https://www.patreon.com/c/plasiusltd/membership"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/Plasius-LTD"
+    }
+  ]
+}
