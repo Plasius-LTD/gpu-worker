@@ -12,7 +12,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
-  - (placeholder)
+  - Demo now simulates millions of instanced objects with range checks, bounding spheres/AABBs, and face contact stats.
 
 - **Fixed**
   - (placeholder)

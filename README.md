@@ -33,10 +33,25 @@ dependencies first so the lock-free queue package is available for the browser i
 
 ```
 npm install
-python3 -m http.server
+npm run demo
 ```
 
 Then open `http://localhost:8000/demo/`.
+
+### HTTPS demo
+WebGPU requires a secure context. For non-localhost access, run the HTTPS demo server.
+
+```
+mkdir -p demo/certs
+mkcert -key-file demo/certs/localhost-key.pem -cert-file demo/certs/localhost.pem localhost 127.0.0.1 ::1
+# or
+openssl req -x509 -newkey rsa:2048 -nodes -keyout demo/certs/localhost-key.pem -out demo/certs/localhost.pem -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+npm run demo:https
+```
+
+Then open `https://localhost:8443/demo/`. If you use a different hostname/IP, generate a
+certificate for that name and set `DEMO_HOST`, `DEMO_PORT`, `DEMO_TLS_CERT`, and
+`DEMO_TLS_KEY` as needed.
 
 ## Build Outputs
 

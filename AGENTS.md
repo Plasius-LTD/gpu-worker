@@ -28,4 +28,5 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 - After any change, run relevant BDD/TDD tests when they exist; mention if skipped.
 - For fixes, add/update a BDD or TDD test that fails first and validate it passes after the fix when possible.
 - When adding or updating dependencies, prefer lazy-loading (dynamic import/code splitting) to avoid heavy first-load network use when applicable.
+- Architectural changes require ADRs in `docs/adrs/` (or the repo ADRs folder); ensure a package-function ADR exists.
 </INSTRUCTIONS>
