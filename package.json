@@ -47,7 +47,7 @@
   "author": "Plasius LTD <development@plasius.co.uk>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@plasius/gpu-lock-free-queue": "^0.1.1-beta.1"
+    "@plasius/gpu-lock-free-queue": "^0.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

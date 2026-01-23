@@ -9,13 +9,18 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - `assembleWorkerWgsl` now accepts optional queue WGSL overrides for local demos.
 
 - **Changed**
   - Demo now simulates millions of instanced objects with range checks, bounding spheres/AABBs, and face contact stats.
+  - **Breaking:** Queue bindings updated to remove the payload arena and use payload offsets into caller-managed buffers.
+  - Demo updated to match the new payload-handle layout.
+  - **Breaking:** Queue bindings now use job metadata and a variable-size payload arena.
+  - Worker job payloads are read from the output payload buffer using `output_stride`.
+  - Demo updated to emit job metadata and payload buffers.
 
 - **Fixed**
-  - (placeholder)
+  - Demo can load a local queue WGSL to avoid mismatched dependency versions.
 
 - **Security**
   - (placeholder)
@@ -69,6 +74,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.0...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.2.0
+[0.3.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.0

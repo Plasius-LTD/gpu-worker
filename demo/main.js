@@ -1,5 +1,3 @@
-import { assembleWorkerWgsl } from "../src/index.js";
-
 const logEl = document.getElementById("log");
 const statsEl = document.getElementById("stats");
 const canvas = document.getElementById("frame");
@@ -213,8 +211,10 @@ async function init() {
   });
   logLine(`Max storage buffers per stage: ${device.limits.maxStorageBuffersPerShaderStage}`);
   const workerWgslUrl = new URL("../src/worker.wgsl", import.meta.url);
+  const queueWgslUrl = new URL("./queue.wgsl", import.meta.url);
   const workerWgsl = await fetchText(workerWgslUrl);
-  const shaderCode = await assembleWorkerWgsl(workerWgsl);
+  const queueWgsl = await fetchText(queueWgslUrl);
+  const shaderCode = `${queueWgsl}\n\n${workerWgsl}`;
   const module = device.createShaderModule({ code: shaderCode });
   const info = await module.getCompilationInfo();
   if (info.messages.length) {
@@ -227,9 +227,9 @@ async function init() {
     entries: [
       { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
       { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
-      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
+      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
       { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
-      { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
+      { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
       { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
     ],
   });
@@ -280,9 +280,11 @@ async function init() {
 
   const jobCount = instanceCount;
   const capacity = nextPowerOfTwo(jobCount);
+  const maxPayloadWords = 1;
 
-  const queueHeaderSize = 32;
+  const queueHeaderSize = 16;
   const slotsSize = capacity * slotStride;
+  const payloadSize = jobCount * maxPayloadWords * 4;
 
   const queueBuffer = device.createBuffer({
     size: queueHeaderSize,
@@ -292,20 +294,20 @@ async function init() {
     size: slotsSize,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const inputBuffer = device.createBuffer({
-    size: jobCount * 4,
+  const inputJobsBuffer = device.createBuffer({
+    size: jobCount * 16,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const outputBuffer = device.createBuffer({
-    size: jobCount * 4,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  const outputJobsBuffer = device.createBuffer({
+    size: jobCount * 16,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const statusBuffer = device.createBuffer({
-    size: jobCount * 4,
+  const inputPayloadBuffer = device.createBuffer({
+    size: payloadSize,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
   const paramsBuffer = device.createBuffer({
-    size: 32,
+    size: 16,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -334,10 +336,6 @@ async function init() {
     0,
     capacity,
     capacity - 1,
-    0,
-    0,
-    0,
-    0,
   ]);
   device.queue.writeBuffer(queueBuffer, 0, queueHeader);
 
@@ -348,14 +346,21 @@ async function init() {
   }
   device.queue.writeBuffer(slotsBuffer, 0, slotsInit);
 
-  const inputJobs = new Uint32Array(jobCount);
+  const inputJobs = new Uint32Array(jobCount * 4);
+  const inputPayloads = new Uint32Array(jobCount * maxPayloadWords);
   for (let i = 0; i < jobCount; i += 1) {
-    inputJobs[i] = i;
+    const base = i * 4;
+    inputJobs[base] = 0;
+    inputJobs[base + 1] = i * maxPayloadWords;
+    inputJobs[base + 2] = 1;
+    inputJobs[base + 3] = 0;
+    inputPayloads[i] = i;
   }
-  device.queue.writeBuffer(inputBuffer, 0, inputJobs);
-  device.queue.writeBuffer(statusBuffer, 0, new Uint32Array(jobCount));
+  device.queue.writeBuffer(inputJobsBuffer, 0, inputJobs);
+  device.queue.writeBuffer(inputPayloadBuffer, 0, inputPayloads);
+  device.queue.writeBuffer(outputJobsBuffer, 0, new Uint32Array(jobCount * 4));
 
-  const paramsData = new Uint32Array(8);
+  const paramsData = new Uint32Array(4);
   paramsData[0] = jobCount;
   device.queue.writeBuffer(paramsBuffer, 0, paramsData);
 
@@ -393,9 +398,9 @@ async function init() {
     entries: [
       { binding: 0, resource: { buffer: queueBuffer } },
       { binding: 1, resource: { buffer: slotsBuffer } },
-      { binding: 2, resource: { buffer: inputBuffer } },
-      { binding: 3, resource: { buffer: outputBuffer } },
-      { binding: 4, resource: { buffer: statusBuffer } },
+      { binding: 2, resource: { buffer: inputJobsBuffer } },
+      { binding: 3, resource: { buffer: outputJobsBuffer } },
+      { binding: 4, resource: { buffer: inputPayloadBuffer } },
       { binding: 5, resource: { buffer: paramsBuffer } },
     ],
   });
@@ -425,7 +430,6 @@ async function init() {
   const workgroupCount = Math.ceil(jobCount / 64);
   const floatsPerResult = resultStride / 4;
   const statsZero = new Uint32Array(statsCount);
-  const statusZero = new Uint32Array(jobCount);
   let frameCounter = 0;
   let stagnantFrames = 0;
   let lastSamplePos = null;
@@ -447,7 +451,10 @@ async function init() {
     simF32[4] = stepDt;
     device.queue.writeBuffer(simParamsBuffer, 0, simParamsData);
     device.queue.writeBuffer(statsBuffer, 0, statsZero);
-    device.queue.writeBuffer(statusBuffer, 0, statusZero);
+    for (let i = 3; i < inputJobs.length; i += 4) {
+      inputJobs[i] = 0;
+    }
+    device.queue.writeBuffer(inputJobsBuffer, 0, inputJobs);
 
     if (debugGpu) {
       device.pushErrorScope("validation");

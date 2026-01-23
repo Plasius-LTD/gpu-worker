@@ -22,6 +22,9 @@ const shaderCode = await assembleWorkerWgsl(workerWgsl);
 // Pass shaderCode to device.createShaderModule({ code: shaderCode })
 ```
 
+`assembleWorkerWgsl` also accepts an optional second argument to override the queue WGSL source:
+`assembleWorkerWgsl(workerWgsl, { queueWgsl, queueUrl, fetcher })`.
+
 ## What this is
 - A minimal GPU worker layer that combines a lock-free queue with user WGSL jobs.
 - A helper to assemble WGSL modules with queue helpers included.
@@ -64,4 +67,6 @@ certificate for that name and set `DEMO_HOST`, `DEMO_PORT`, `DEMO_TLS_CERT`, and
 - `src/index.js`: Helper functions to load/assemble WGSL.
 
 ## Job shape
-Jobs are `u32` indices into a fixed workload array (tiles, particles, etc). Keep job data fixed-size; use indices into a separate payload buffer for variable payloads.
+Jobs are variable-length payloads stored in a caller-managed buffer. Each job supplies `job_type`, `payload_offset`, and `payload_words` metadata plus a payload stored in the input payload buffer. For simple cases, use a single-word payload containing an index into your workload array.
+
+Set `output_stride` in queue params to the maximum payload size you want copied out for a job; `job_type` can be used by schedulers to route work to different kernels. The queue mirrors input metadata into `output_jobs` and optionally copies payloads into `output_payloads`.

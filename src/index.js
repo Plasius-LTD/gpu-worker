@@ -20,8 +20,10 @@ export async function loadWorkerWgsl() {
   return response.text();
 }
 
-export async function assembleWorkerWgsl(workerWgsl) {
-  const queueWgsl = await loadQueueWgsl();
+export async function assembleWorkerWgsl(workerWgsl, options = {}) {
+  const { queueWgsl, queueUrl, fetcher } = options ?? {};
+  const queueSource =
+    queueWgsl ?? (await loadQueueWgsl({ url: queueUrl, fetcher }));
   const body = workerWgsl ?? (await loadWorkerWgsl());
-  return `${queueWgsl}\n\n${body}`;
+  return `${queueSource}\n\n${body}`;
 }

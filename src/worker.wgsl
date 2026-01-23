@@ -118,7 +118,15 @@ fn simulate_main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
-  let job = output_jobs[idx];
+  let payload_words = output_jobs[idx].payload_words;
+  if (payload_words == 0u) {
+    return;
+  }
+  let payload_offset = output_jobs[idx].payload_offset;
+  if (payload_offset + payload_words > arrayLength(&input_payloads)) {
+    return;
+  }
+  let job = input_payloads[payload_offset];
   if (job >= sim.count) {
     return;
   }
@@ -254,5 +262,4 @@ fn simulate_main(@builtin(global_invocation_id) gid: vec3<u32>) {
   results[job].aabb_max = vec4<f32>(aabb_max, 0.0);
   results[job].sphere = vec4<f32>(pos, radius);
   results[job].metrics = vec4<f32>(dist, speed, in_range, f32(face_mask));
-  status[job] = 0u;
 }
