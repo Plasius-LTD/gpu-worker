@@ -3,13 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Plasius GPU Worker - Ray Tracing Demo</title>
+    <title>Plasius GPU Worker - Instanced Simulation Demo</title>
     <style>
       :root {
         color-scheme: light;
         --paper: #f7f2e9;
         --ink: #231f19;
         --accent: #d9895b;
+        --accent-2: #2a8f7b;
         --panel: rgba(255, 255, 255, 0.82);
         --shadow: rgba(35, 31, 25, 0.18);
       }
@@ -22,7 +23,7 @@
         color: var(--ink);
       }
       .shell {
-        max-width: 980px;
+        max-width: 1080px;
         margin: 0 auto;
         display: grid;
         gap: 20px;
@@ -36,8 +37,13 @@
         font-size: 32px;
         letter-spacing: 0.02em;
       }
+      h2 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        letter-spacing: 0.02em;
+      }
       .tagline {
-        max-width: 720px;
+        max-width: 760px;
         font-size: 16px;
       }
       .panel {
@@ -47,6 +53,10 @@
         padding: 18px 20px;
         box-shadow: 0 14px 36px var(--shadow);
       }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
       pre {
         margin: 0;
         padding: 14px 16px;
@@ -55,7 +65,7 @@
         border-radius: 12px;
         font-size: 13px;
         line-height: 1.4;
-        max-height: 220px;
+        max-height: 240px;
         overflow: auto;
       }
       canvas {
@@ -70,23 +80,40 @@
         font-size: 14px;
         color: rgba(35, 31, 25, 0.75);
       }
+      @media (min-width: 860px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
     </style>
   </head>
   <body>
     <div class="shell">
       <header>
-        <h1>GPU Worker · Ray Tracing Queue</h1>
+        <h1>GPU Worker · Instanced Simulation</h1>
         <p class="tagline">
-          This demo enqueues WGSL ray tracing jobs into a lock-free GPU queue and dispatches tiles
-          directly on the GPU.
+          Millions of instanced bodies are dequeued from the lock-free GPU queue, simulated with
+          bounding spheres and AABB collisions, and checked against a sensor range in one compute pass.
         </p>
       </header>
-      <section class="panel">
-        <pre id="log">Booting WebGPU…</pre>
+
+      <section class="panel grid">
+        <div>
+          <h2>Simulation Log</h2>
+          <pre id="log">Booting WebGPU…</pre>
+        </div>
+        <div>
+          <h2>Stats Snapshot</h2>
+          <pre id="stats">Awaiting GPU dispatch…</pre>
+        </div>
       </section>
+
       <section class="panel">
-        <canvas id="frame" width="640" height="360"></canvas>
-        <p class="note">WebGPU requires a secure context (localhost or HTTPS).</p>
+        <canvas id="frame" width="720" height="420"></canvas>
+        <p class="note">
+          WebGPU requires a secure context (localhost or HTTPS). The view is a top-down X/Z slice with
+          sample bounds, spheres, and range highlights.
+        </p>
       </section>
     </div>
 

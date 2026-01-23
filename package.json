@@ -26,6 +26,7 @@
   "scripts": {
     "build": "tsup && cp src/worker.wgsl dist/worker.wgsl",
     "demo": "python3 -m http.server",
+    "demo:https": "node demo/serve-https.js",
     "test": "npm run test:unit",
     "test:unit": "node --test",
     "test:e2e": "npx playwright install chromium && playwright test",
