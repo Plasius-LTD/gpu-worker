@@ -57,6 +57,27 @@
         display: grid;
         gap: 16px;
       }
+      .controls {
+        display: grid;
+        gap: 14px;
+      }
+      .control {
+        display: grid;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .control-row {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+      .control .value {
+        font-weight: 600;
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent-2);
+      }
       pre {
         margin: 0;
         padding: 14px 16px;
@@ -109,10 +130,31 @@
       </section>
 
       <section class="panel">
-        <canvas id="frame" width="720" height="420"></canvas>
+        <h2>Simulation Controls</h2>
+        <div class="controls">
+          <label class="control">
+            <span class="control-row">
+              Particle Count
+              <span id="countValue" class="value"></span>
+            </span>
+            <input id="countSlider" type="range" min="500" max="10000" step="500" value="10000" />
+          </label>
+          <label class="control">
+            <span class="control-row">
+              Particle Radius
+              <span id="radiusValue" class="value"></span>
+            </span>
+            <input id="radiusSlider" type="range" min="0.5" max="1.5" step="0.05" value="1.0" />
+          </label>
+        </div>
+        <p class="note">Adjust count and size in real time.</p>
+      </section>
+
+      <section class="panel">
+        <canvas id="frame" width="1960" height="1080"></canvas>
         <p class="note">
-          WebGPU requires a secure context (localhost or HTTPS). The view is a top-down X/Z slice with
-          sample bounds, spheres, and range highlights.
+          WebGPU requires a secure context (localhost or HTTPS). The view now renders a stylized
+          oil-lantern flame in 3D with a GPU-rendered scene and ray-cast lighting.
         </p>
       </section>
     </div>

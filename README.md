@@ -15,15 +15,68 @@ npm install @plasius/gpu-worker
 
 ## Usage
 ```js
-import { assembleWorkerWgsl, loadWorkerWgsl } from "@plasius/gpu-worker";
+import {
+  assembleWorkerWgsl,
+  createWorkerLoop,
+  loadJobWgsl,
+  loadWorkerWgsl,
+} from "@plasius/gpu-worker";
 
 const workerWgsl = await loadWorkerWgsl();
-const shaderCode = await assembleWorkerWgsl(workerWgsl);
+const jobType = await loadJobWgsl({
+  wgsl: `
+fn process_job(job_index: u32, job_type: u32, payload_words: u32) {
+  // job logic here
+}
+`,
+  label: "physics",
+});
+
+const shaderCode = await assembleWorkerWgsl(workerWgsl, { debug: true });
 // Pass shaderCode to device.createShaderModule({ code: shaderCode })
 ```
 
-`assembleWorkerWgsl` also accepts an optional second argument to override the queue WGSL source:
-`assembleWorkerWgsl(workerWgsl, { queueWgsl, queueUrl, fetcher })`.
+`loadJobWgsl` registers job WGSL and returns the assigned `job_type` index.
+Call `assembleWorkerWgsl` again after registering new jobs to rebuild the
+combined WGSL. Job types are assigned in registration order, so keep the
+registration order stable across rebuilds if you need deterministic ids.
+
+`assembleWorkerWgsl` also accepts an optional second argument to override the
+queue WGSL source: `assembleWorkerWgsl(workerWgsl, { queueWgsl, queueUrl, fetcher })`.
+By default it applies queue compatibility renames (for example `JobMeta` -> `JobDesc`);
+set `queueCompat: false` to disable that behavior.
+If you are concatenating WGSL manually, `loadQueueWgsl` provides the same
+compatibility renames by default: `loadQueueWgsl({ url, fetcher, queueCompat: false })`.
+
+To bypass the registry, pass jobs directly:
+```js
+const shaderCode = await assembleWorkerWgsl(workerWgsl, {
+  jobs: [{ wgsl: jobA }, { wgsl: jobB, label: "lighting" }],
+  debug: true,
+});
+```
+
+When assembling jobs, each job WGSL must define
+`process_job(job_index, job_type, payload_words)`. The assembler rewrites each
+job's `process_job` to a unique name and generates a dispatcher based on
+`job_type`. Set `debug: true` to detect identifier clashes across appended WGSL.
+
+To run the worker loop at the highest practical rate (or a target rate), use the
+helper:
+```js
+const loop = createWorkerLoop({
+  device,
+  worker: { pipeline: workerPipeline, bindGroups: [queueBindGroup, simBindGroup] },
+  jobs: [
+    { pipeline: physicsPipeline, bindGroups: [queueBindGroup, simBindGroup], workgroups: physicsWorkgroups },
+    { pipeline: renderIndirectPipeline, bindGroups: [queueBindGroup, simBindGroup], workgroups: 1 },
+  ],
+  workgroupSize: 64,
+  maxJobsPerDispatch: queueCapacity,
+  // rateHz: 120, // optional throttle; omit for animation-frame cadence
+});
+loop.start();
+```
 
 ## What this is
 - A minimal GPU worker layer that combines a lock-free queue with user WGSL jobs.
@@ -31,8 +84,9 @@ const shaderCode = await assembleWorkerWgsl(workerWgsl);
 - A reference job format for fixed-size job dispatch (u32 indices).
 
 ## Demo
-The demo enqueues ray tracing tile jobs on the GPU and renders a simple scene. Install
-dependencies first so the lock-free queue package is available for the browser import map.
+The demo enqueues physics and render jobs on the GPU, builds per-type worklists, runs the
+physics kernel, and uses an indirect draw for the particle pass. Install dependencies first
+so the lock-free queue package is available for the browser import map.
 
 ```
 npm install
@@ -61,9 +115,12 @@ certificate for that name and set `DEMO_HOST`, `DEMO_PORT`, `DEMO_TLS_CERT`, and
 `npm run build` emits `dist/index.js`, `dist/index.cjs`, and `dist/worker.wgsl`.
 
 ## Files
-- `demo/index.html`: Loads the ray tracing demo.
-- `demo/main.js`: WebGPU setup, enqueue, and ray tracing kernel.
-- `src/worker.wgsl`: Worker entry points that dequeue jobs and run a ray tracer.
+- `demo/index.html`: Loads the WebGPU demo.
+- `demo/main.js`: WebGPU setup, queue jobs, physics worklists, and indirect draw.
+- `demo/jobs/common.wgsl`: Shared WGSL definitions for demo jobs.
+- `demo/jobs/physics.job.wgsl`: Physics job kernel (worklist + integration).
+- `demo/jobs/render.job.wgsl`: Render job kernel (worklist + indirect args).
+- `src/worker.wgsl`: Minimal worker entry point template (dequeue + `process_job` hook).
 - `src/index.js`: Helper functions to load/assemble WGSL.
 
 ## Job shape
