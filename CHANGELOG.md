@@ -9,6 +9,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.1.2] - 2026-01-24
+
+- **Added**
   - `loadJobWgsl` to register multiple job WGSL modules and receive `job_type` ids.
   - Job-aware `assembleWorkerWgsl` that appends registered jobs and generates a dispatch wrapper.
   - Optional debug mode for WGSL identifier clash detection during assembly.
@@ -100,6 +114,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.2...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
+[0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
