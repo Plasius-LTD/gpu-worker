@@ -1,6 +1,6 @@
 {
   "name": "@plasius/gpu-worker",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "WebGPU worker runtime with a lock-free job queue for WGSL workloads.",
   "type": "module",
   "sideEffects": false,
