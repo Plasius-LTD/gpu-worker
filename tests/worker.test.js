@@ -24,6 +24,7 @@ test("loadWorkerWgsl uses fetch for the WGSL body", async () => {
   globalThis.fetch = async (url) => {
     seenUrl = url;
     return {
+      ok: true,
       text: async () => "wgsl-body",
     };
   };
@@ -41,5 +42,6 @@ test("assembleWorkerWgsl concatenates queue and worker sources", async () => {
   const queueWgsl = await loadQueueWgsl();
   const workerWgsl = "worker-main";
   const assembled = await assembleWorkerWgsl(workerWgsl);
-  assert.strictEqual(assembled, `${queueWgsl}\n\n${workerWgsl}`);
+  const expectedQueue = queueWgsl.replace(/\bJobMeta\b/g, "JobDesc");
+  assert.strictEqual(assembled, `${expectedQueue}\n\n${workerWgsl}`);
 });

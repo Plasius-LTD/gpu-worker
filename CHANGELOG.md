@@ -9,13 +9,25 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - `loadJobWgsl` to register multiple job WGSL modules and receive `job_type` ids.
+  - Job-aware `assembleWorkerWgsl` that appends registered jobs and generates a dispatch wrapper.
+  - Optional debug mode for WGSL identifier clash detection during assembly.
+  - `loadQueueWgsl` helper that can apply queue compatibility renames during load.
+  - `createWorkerLoop` helper to drive worker/job compute dispatch at max or throttled rates.
+  - Demo denoise job WGSL (`demo/jobs/denoise.wgsl`) with a compute pass + present shader.
+  - Temporal denoise history buffer in the demo to stabilize jittered lighting.
 
 - **Changed**
-  - (placeholder)
+  - Demo visuals now render a campfire scene with deferred lighting (G-buffer + fullscreen lighting pass).
+  - Demo now builds per-type worklists from queue jobs and uses indirect draws for render jobs alongside physics jobs.
+  - `src/worker.wgsl` is now a minimal worker template; demo kernels live in `demo/jobs/*.wgsl`.
+  - Demo job shaders are split into `demo/jobs/common.wgsl`, `demo/jobs/physics.job.wgsl`, and `demo/jobs/render.job.wgsl`.
+  - Demo lighting sampling now uses screen-space jitter to avoid world-space banding artifacts.
+  - `assembleWorkerWgsl` can now consume a registry or explicit job list and emit a dispatching `process_job`.
+  - `assembleWorkerWgsl` now applies queue compatibility renames (e.g., `JobMeta` -> `JobDesc`) by default.
 
 - **Fixed**
-  - (placeholder)
+  - Reduced diagonal banding artifacts in the demo lighting pass.
 
 - **Security**
   - (placeholder)
@@ -91,6 +103,3 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.1...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
-[0.2.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.2.0
-[0.3.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.0
-[0.1.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.1
