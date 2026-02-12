@@ -1,6 +1,13 @@
 # @plasius/gpu-worker
 
-[![npm version](https://img.shields.io/npm/v/@plasius/gpu-worker)](https://www.npmjs.com/package/@plasius/gpu-worker)
+[![npm version](https://img.shields.io/npm/v/@plasius/gpu-worker.svg)](https://www.npmjs.com/package/@plasius/gpu-worker)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Plasius-LTD/gpu-worker/ci.yml?branch=main&label=build&style=flat)](https://github.com/Plasius-LTD/gpu-worker/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/codecov/c/github/Plasius-LTD/gpu-worker)](https://codecov.io/gh/Plasius-LTD/gpu-worker)
+[![License](https://img.shields.io/github/license/Plasius-LTD/gpu-worker)](./LICENSE)
+[![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-yes-blue.svg)](./CODE_OF_CONDUCT.md)
+[![Security Policy](https://img.shields.io/badge/security%20policy-yes-orange.svg)](./SECURITY.md)
+[![Changelog](https://img.shields.io/badge/changelog-md-blue.svg)](./CHANGELOG.md)
+
 [![CI](https://github.com/Plasius-LTD/gpu-worker/actions/workflows/ci.yml/badge.svg)](https://github.com/Plasius-LTD/gpu-worker/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/Plasius-LTD/gpu-worker)](./LICENSE)
 
