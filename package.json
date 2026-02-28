@@ -30,7 +30,9 @@
     "test": "npm run test:unit",
     "test:unit": "node --test",
     "test:e2e": "npx playwright install chromium && playwright test",
-    "test:coverage": "c8 --reporter=lcov --reporter=text node --test"
+    "test:coverage": "c8 --reporter=lcov --reporter=text node --test",
+    "pack:check": "node scripts/verify-public-package.cjs",
+    "prepublishOnly": "npm run build && npm run pack:check"
   },
   "keywords": [
     "webgpu",
