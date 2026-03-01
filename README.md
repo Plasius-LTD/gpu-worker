@@ -121,6 +121,16 @@ certificate for that name and set `DEMO_HOST`, `DEMO_PORT`, `DEMO_TLS_CERT`, and
 
 `npm run build` emits `dist/index.js`, `dist/index.cjs`, and `dist/worker.wgsl`.
 
+## Development Checks
+
+```sh
+npm run lint
+npm run typecheck
+npm run test:coverage
+npm run build
+npm run pack:check
+```
+
 ## Files
 - `demo/index.html`: Loads the WebGPU demo.
 - `demo/main.js`: WebGPU setup, queue jobs, physics worklists, and indirect draw.
