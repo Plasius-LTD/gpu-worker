@@ -10,3 +10,14 @@ dist
 coverage
 playwright-report
 test-results
+
+# Local HTTPS cert material for demos/dev hosts.
+# Commit public certs only; never commit private keys.
+demo/certs/*-key.pem
+demo/certs/*.key
+demo/certs/*.p8
+
+# Private key material in cert directories (never commit)
+**/certs/**/*-key.pem
+**/certs/**/*.key
+**/certs/**/*.p8
