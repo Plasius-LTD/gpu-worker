@@ -27,9 +27,9 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     `@plasius/gpu-debug` instrumentation.
   - Worker assembly now guarantees a `complete_job(job_index)` hook is present
     so flat and DAG queue assets share the same worker completion path.
-  - Queue package resolution is pinned to the DAG-ready queue GitHub commit over
-    `git+https` while npm publication access for the new queue release is being
-    corrected.
+  - Queue package resolution now references the DAG-ready queue GitHub `main`
+    line over `git+https`, while the lockfile preserves the exact commit for CI
+    reproducibility until npm publication access is corrected.
   - Updated patch-level eslint tooling to the latest versions allowed by the
     current semver ranges.
 
