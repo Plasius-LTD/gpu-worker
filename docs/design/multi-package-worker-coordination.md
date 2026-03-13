@@ -34,6 +34,19 @@ Each effect package should provide:
 - optional debug instrumentation hooks that are dormant unless enabled by the
   client.
 
+## Runtime Telemetry Hooks
+
+`createWorkerLoop` may emit local dispatch and tick summaries when the caller
+passes `frameId` plus `telemetry.onDispatch` / `telemetry.onTick`.
+
+Those hooks are intentionally:
+
+- opt-in, so the hot path stays unchanged by default,
+- local-first, so `@plasius/gpu-worker` does not take on analytics transport,
+- string-contract based, so `@plasius/gpu-debug` and
+  `@plasius/gpu-performance` can correlate `owner`, `queueClass`, `jobType`,
+  and `frameId` without a hard package dependency.
+
 ## Future Expansion
 
 The model should support additional effect families without changing the worker

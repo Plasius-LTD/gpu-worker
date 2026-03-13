@@ -85,6 +85,63 @@ const loop = createWorkerLoop({
 loop.start();
 ```
 
+For opt-in local instrumentation, `createWorkerLoop` also accepts:
+
+- `frameId`: a string or function returning the current frame correlation id.
+- `worker.owner`, `worker.queueClass`, `worker.jobType`, `worker.label`,
+  `worker.workgroupSize`: optional metadata for the dequeue pass.
+- the same metadata fields on each job descriptor.
+- `telemetry.onDispatch(sample)`: called after submit for each worker/job
+  dispatch.
+- `telemetry.onTick(summary)`: called after submit with the per-tick dispatch
+  summary.
+
+That allows direct integration with `@plasius/gpu-debug` without coupling the
+runtime to the package:
+
+```js
+import { createGpuDebugSession } from "@plasius/gpu-debug";
+
+const debug = createGpuDebugSession({ enabled: true });
+
+const loop = createWorkerLoop({
+  device,
+  frameId: () => `frame-${frameNumber}`,
+  worker: {
+    pipeline: workerPipeline,
+    bindGroups: [queueBindGroup],
+    workgroups: [2, 1, 1],
+    workgroupSize: 64,
+    owner: "lighting",
+    queueClass: "lighting",
+    jobType: "worker.dequeue",
+  },
+  jobs: [
+    {
+      pipeline: directLightingPipeline,
+      bindGroups: [queueBindGroup, lightingBindGroup],
+      workgroupCount: [32, 18, 1],
+      workgroupSize: [8, 8, 1],
+      owner: "lighting",
+      queueClass: "lighting",
+      jobType: "lighting.direct",
+    },
+  ],
+  telemetry: {
+    onDispatch(sample) {
+      debug.recordDispatch({
+        owner: sample.owner,
+        queueClass: sample.queueClass,
+        jobType: sample.jobType,
+        frameId: sample.frameId,
+        workgroups: sample.workgroups,
+        workgroupSize: sample.workgroupSize,
+      });
+    },
+  },
+});
+```
+
 ## What this is
 - A minimal GPU worker layer that combines a lock-free queue with user WGSL jobs.
 - A helper to assemble WGSL modules with queue helpers included.
@@ -101,8 +158,9 @@ Package authors should:
 - keep scheduling in terms of compact worklists and bounded dispatches,
 - let `@plasius/gpu-performance` adjust worker budgets instead of building
   separate package-local governors,
-- expose optional local instrumentation through `@plasius/gpu-debug` when
-  clients enable it.
+- expose optional local instrumentation through `createWorkerLoop(..., {
+  telemetry })` and route that into `@plasius/gpu-debug` when clients enable
+  it.
 
 This pattern is intended to scale across post-processing, cloth, fluids,
 lighting refresh, voxel generation, and additional GPU job families without

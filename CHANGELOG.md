@@ -14,11 +14,15 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     packages.
   - Design documentation for multi-package worker coordination and future effect
     package expansion.
+  - Optional `createWorkerLoop` telemetry hooks for dispatch samples and
+    per-tick summaries with shared `frameId` correlation support.
 
 - **Changed**
   - README guidance now points package authors toward worker-job manifests,
     `@plasius/gpu-performance` budget coordination, and optional
     `@plasius/gpu-debug` instrumentation.
+  - Updated patch-level eslint tooling to the latest versions allowed by the
+    current semver ranges.
 
 - **Fixed**
   - (placeholder)

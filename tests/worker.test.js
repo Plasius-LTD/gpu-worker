@@ -335,6 +335,107 @@ test("createWorkerLoop uses onError callback instead of throwing", () => {
   assert.match(errors[0], /Job pipeline missing/);
 });
 
+test("createWorkerLoop emits optional telemetry samples with frame correlation", () => {
+  const device = new FakeDevice();
+  const dispatches = [];
+  const ticks = [];
+  const loop = createWorkerLoop({
+    device,
+    frameId: () => "frame-42",
+    worker: {
+      pipeline: { id: "worker" },
+      workgroups: [2, 1, 1],
+      workgroupSize: 64,
+      owner: "lighting",
+      queueClass: "lighting",
+      jobType: "worker.dequeue",
+      label: "lighting-worker",
+    },
+    jobs: [
+      {
+        pipeline: { id: "job" },
+        workgroupCount: [3, 2, 1],
+        workgroupSize: [8, 8, 1],
+        owner: "lighting",
+        queueClass: "lighting",
+        jobType: "lighting.direct",
+        label: "direct-lighting",
+      },
+    ],
+    telemetry: {
+      onDispatch(sample) {
+        dispatches.push(sample);
+      },
+      onTick(summary) {
+        ticks.push(summary);
+      },
+    },
+  });
+
+  loop.tick();
+
+  assert.equal(dispatches.length, 2);
+  assert.deepEqual(dispatches[0], {
+    kind: "worker",
+    index: 0,
+    label: "lighting-worker",
+    owner: "lighting",
+    queueClass: "lighting",
+    jobType: "worker.dequeue",
+    frameId: "frame-42",
+    workgroups: { x: 2, y: 1, z: 1 },
+    workgroupSize: { x: 64, y: 1, z: 1 },
+  });
+  assert.deepEqual(dispatches[1], {
+    kind: "job",
+    index: 0,
+    label: "direct-lighting",
+    owner: "lighting",
+    queueClass: "lighting",
+    jobType: "lighting.direct",
+    frameId: "frame-42",
+    workgroups: { x: 3, y: 2, z: 1 },
+    workgroupSize: { x: 8, y: 8, z: 1 },
+  });
+
+  assert.equal(ticks.length, 1);
+  assert.equal(ticks[0].frameId, "frame-42");
+  assert.equal(ticks[0].dispatchCount, 2);
+  assert.equal(ticks[0].workerDispatchCount, 1);
+  assert.equal(ticks[0].jobDispatchCount, 1);
+  assert.equal(ticks[0].dispatches.length, 2);
+  assert.equal(typeof ticks[0].tickDurationMs, "number");
+});
+
+test("telemetry hook failures are isolated through onError", () => {
+  const errors = [];
+  const loop = createWorkerLoop({
+    device: new FakeDevice(),
+    worker: {
+      pipeline: { id: "worker" },
+      workgroups: [1, 1, 1],
+    },
+    telemetry: {
+      onDispatch() {
+        throw new Error("dispatch telemetry failed");
+      },
+      onTick() {
+        throw new Error("tick telemetry failed");
+      },
+    },
+    onError(error) {
+      errors.push(error.message);
+    },
+  });
+
+  loop.tick();
+
+  assert.deepEqual(errors, [
+    "dispatch telemetry failed",
+    "tick telemetry failed",
+  ]);
+});
+
 test("createWorkerLoop start/stop uses timeout scheduler when RAF is unavailable", () => {
   const originalSetTimeout = globalThis.setTimeout;
   const originalClearTimeout = globalThis.clearTimeout;

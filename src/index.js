@@ -394,6 +394,98 @@ function resolveWorkgroups(value, label) {
   return normalizeWorkgroups(value, label);
 }
 
+function normalizeTelemetryText(value, fallback) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, 120) : fallback;
+}
+
+function resolveFrameId(value) {
+  if (typeof value === "function") {
+    return resolveFrameId(value());
+  }
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, 120) : undefined;
+}
+
+function toVector(workgroups) {
+  return { x: workgroups[0], y: workgroups[1], z: workgroups[2] };
+}
+
+function resolveTelemetryWorkgroupSize(descriptor, fallback, label) {
+  const size =
+    descriptor?.workgroupSize == null ? fallback : descriptor.workgroupSize;
+  if (size == null) {
+    return undefined;
+  }
+  const normalized =
+    typeof size === "number" ? normalizeWorkgroups(size, label) : resolveWorkgroups(size, label);
+  if (!normalized) {
+    return undefined;
+  }
+  return toVector(normalized);
+}
+
+function getNow() {
+  if (globalThis.performance && typeof globalThis.performance.now === "function") {
+    return globalThis.performance.now();
+  }
+  return Date.now();
+}
+
+function reportOptionalError(error, onError) {
+  if (!onError) {
+    return;
+  }
+  if (error instanceof Error) {
+    onError(error);
+    return;
+  }
+  onError(new Error(String(error)));
+}
+
+function emitOptionalHook(callback, payload, onError) {
+  if (typeof callback !== "function") {
+    return;
+  }
+  try {
+    callback(payload);
+  } catch (error) {
+    reportOptionalError(error, onError);
+  }
+}
+
+function buildDispatchTelemetrySample({
+  kind,
+  descriptor,
+  index,
+  frameId,
+  workgroups,
+  workgroupSize,
+}) {
+  const labelFallback = kind === "worker" ? "worker" : `job_${index}`;
+  const label = normalizeTelemetryText(descriptor?.label, labelFallback);
+  return {
+    kind,
+    index,
+    label,
+    owner: normalizeTelemetryText(descriptor?.owner, label),
+    queueClass: normalizeTelemetryText(descriptor?.queueClass, "custom"),
+    jobType: normalizeTelemetryText(
+      descriptor?.jobType,
+      kind === "worker" ? "worker.dispatch" : label
+    ),
+    frameId,
+    workgroups: toVector(workgroups),
+    workgroupSize,
+  };
+}
+
 function setBindGroups(pass, bindGroups) {
   if (!bindGroups) {
     return;
@@ -429,6 +521,8 @@ export function createWorkerLoop(options = {}) {
     label,
     onTick,
     onError,
+    frameId,
+    telemetry,
   } = options ?? {};
 
   if (!device) {
@@ -446,6 +540,9 @@ export function createWorkerLoop(options = {}) {
 
   const tick = () => {
     try {
+      const tickStartMs = getNow();
+      const currentFrameId = resolveFrameId(frameId);
+      const telemetryDispatches = [];
       const encoder = device.createCommandEncoder();
       const pass = encoder.beginComputePass(
         label ? { label } : undefined
@@ -465,6 +562,20 @@ export function createWorkerLoop(options = {}) {
 
       if (workerGroups[0] > 0) {
         pass.dispatchWorkgroups(...workerGroups);
+        telemetryDispatches.push(
+          buildDispatchTelemetrySample({
+            kind: "worker",
+            descriptor: worker,
+            index: 0,
+            frameId: currentFrameId,
+            workgroups: workerGroups,
+            workgroupSize: resolveTelemetryWorkgroupSize(
+              worker,
+              workgroupSize,
+              "worker workgroupSize"
+            ),
+          })
+        );
       }
 
       jobs.forEach((job, index) => {
@@ -482,11 +593,45 @@ export function createWorkerLoop(options = {}) {
         }
         if (groups[0] > 0) {
           pass.dispatchWorkgroups(...groups);
+          telemetryDispatches.push(
+            buildDispatchTelemetrySample({
+              kind: "job",
+              descriptor: job,
+              index,
+              frameId: currentFrameId,
+              workgroups: groups,
+              workgroupSize: resolveTelemetryWorkgroupSize(
+                job,
+                undefined,
+                `job ${index} workgroupSize`
+              ),
+            })
+          );
         }
       });
 
       pass.end();
       device.queue.submit([encoder.finish()]);
+
+      telemetryDispatches.forEach((sample) => {
+        emitOptionalHook(telemetry?.onDispatch, sample, onError);
+      });
+      emitOptionalHook(
+        telemetry?.onTick,
+        {
+          frameId: currentFrameId,
+          tickDurationMs: getNow() - tickStartMs,
+          dispatchCount: telemetryDispatches.length,
+          workerDispatchCount: telemetryDispatches.filter(
+            (sample) => sample.kind === "worker"
+          ).length,
+          jobDispatchCount: telemetryDispatches.filter(
+            (sample) => sample.kind === "job"
+          ).length,
+          dispatches: telemetryDispatches,
+        },
+        onError
+      );
 
       if (onTick) {
         onTick();
