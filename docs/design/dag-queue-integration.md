@@ -28,6 +28,7 @@ Effect packages should use:
 - `queueMode: "dag"` when their manifests define dependency chains,
 - stable `jobType` identifiers,
 - bounded `priority` values,
-- dependency ids that match manifest job labels.
+- dependency ids that match manifest job labels,
+- multiple roots where independent stages can start immediately.
 
 Packages with flat independent jobs can keep using `queueMode: "flat"`.

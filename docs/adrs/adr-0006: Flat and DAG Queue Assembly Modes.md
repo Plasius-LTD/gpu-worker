@@ -24,6 +24,10 @@ The worker template will call `complete_job(job_index)` after
 callers provide a custom queue source that omits it, the assembler appends a
 no-op compatibility shim.
 
+Package manifests remain the source of truth for DAG node labels, priorities,
+and dependency edges. `@plasius/gpu-worker` assembles against that contract but
+does not reinterpret it into package-local policy.
+
 ## Consequences
 
 - Positive: one worker runtime can execute both flat and DAG queue contracts.

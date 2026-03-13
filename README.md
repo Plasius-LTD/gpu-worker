@@ -176,6 +176,14 @@ budgets or decide priorities itself. Instead it exposes the queue mode and the
 completion hook needed by package manifests and `@plasius/gpu-performance` to
 coordinate DAG-shaped workloads.
 
+Package manifests should be treated as explicit DAG node definitions, not just
+loose hints. In practice that means:
+
+- multiple roots are allowed and expected,
+- manifest labels act as dependency ids,
+- priorities map to ready-queue lanes,
+- downstream jobs are unlocked only when every upstream dependency completes.
+
 ## Package Integration Model
 
 `@plasius/gpu-worker` is the preferred execution plane for discrete GPU work
