@@ -90,6 +90,24 @@ loop.start();
 - A helper to assemble WGSL modules with queue helpers included.
 - A reference job format for fixed-size job dispatch (u32 indices).
 
+## Package Integration Model
+
+`@plasius/gpu-worker` is the preferred execution plane for discrete GPU work
+across current and future `@plasius/gpu-*` compute packages.
+
+Package authors should:
+
+- register stable worker job types for each effect family,
+- keep scheduling in terms of compact worklists and bounded dispatches,
+- let `@plasius/gpu-performance` adjust worker budgets instead of building
+  separate package-local governors,
+- expose optional local instrumentation through `@plasius/gpu-debug` when
+  clients enable it.
+
+This pattern is intended to scale across post-processing, cloth, fluids,
+lighting refresh, voxel generation, and additional GPU job families without
+splitting scheduling policy across packages.
+
 ## Demo
 The demo enqueues physics and render jobs on the GPU, builds per-type worklists, runs the
 physics kernel, and uses an indirect draw for the particle pass. Install dependencies first
@@ -139,6 +157,9 @@ npm run pack:check
 - `demo/jobs/render.job.wgsl`: Render job kernel (worklist + indirect args).
 - `src/worker.wgsl`: Minimal worker entry point template (dequeue + `process_job` hook).
 - `src/index.js`: Helper functions to load/assemble WGSL.
+- `docs/adrs/*`: architectural decisions for worker runtime and scheduling.
+- `docs/tdrs/*`: technical design records for multi-package worker integration.
+- `docs/design/*`: design notes for package integration and future expansion.
 
 ## Job shape
 Jobs are variable-length payloads stored in a caller-managed buffer. Each job supplies `job_type`, `payload_offset`, and `payload_words` metadata plus a payload stored in the input payload buffer. For simple cases, use a single-word payload containing an index into your workload array.

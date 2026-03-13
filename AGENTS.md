@@ -137,3 +137,7 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 - Do not claim or begin a task that is already `In Progress`, assigned, or otherwise actively owned by another person.
 - If the needed task is already in progress by another owner, stop and ask the user how to proceed instead of duplicating or competing on the same task.
 - If work is required and no task exists yet, create or request the task before implementation begins.
+
+## Worker-First Integration Policy
+- Treat `@plasius/gpu-worker` as the preferred shared execution plane for discrete GPU jobs across current and future `@plasius/gpu-*` compute packages.
+- New package integrations should document stable job manifests, budget knobs, and any optional debug hooks so they can be governed by `@plasius/gpu-performance` and observed by `@plasius/gpu-debug`.

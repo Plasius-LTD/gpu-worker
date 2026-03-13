@@ -9,10 +9,16 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - ADR and TDR guidance describing `@plasius/gpu-worker` as the preferred
+    discrete execution plane for current and future `@plasius/gpu-*` compute
+    packages.
+  - Design documentation for multi-package worker coordination and future effect
+    package expansion.
 
 - **Changed**
-  - (placeholder)
+  - README guidance now points package authors toward worker-job manifests,
+    `@plasius/gpu-performance` budget coordination, and optional
+    `@plasius/gpu-debug` instrumentation.
 
 - **Fixed**
   - (placeholder)
