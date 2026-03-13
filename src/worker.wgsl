@@ -34,4 +34,5 @@ fn worker_main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let job_info = output_jobs[idx];
   process_job(idx, job_info.job_type, job_info.payload_words);
+  complete_job(idx);
 }

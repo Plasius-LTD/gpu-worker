@@ -154,6 +154,16 @@ test("loadQueueWgsl supports compat toggle", async () => {
   assert.equal(queueCompat, queueRaw.replace(/\bJobMeta\b/g, "JobDesc"));
 });
 
+test("loadQueueWgsl can load DAG scheduler helpers", async () => {
+  const dagQueue = await loadQueueWgslApi({
+    queueMode: "dag",
+    queueCompat: false,
+  });
+
+  assert.match(dagQueue, /struct ReadyQueue/);
+  assert.match(dagQueue, /fn complete_job/);
+});
+
 test("loadJobWgsl registers sequential job ids and labels", async () => {
   const module = await importWorkerModuleFresh("job-registry");
   const job0 = await module.loadJobWgsl({ wgsl: BASE_JOB_WGSL });
@@ -194,7 +204,10 @@ test("assembleWorkerWgsl supports empty jobs and explicit prelude", async () => 
     queueWgsl: "queue-main",
     jobs: [],
   });
-  assert.equal(noJobs, "queue-main\n\nworker-main");
+  assert.equal(
+    noJobs,
+    "queue-main\n\nfn complete_job(job_index: u32) {\n  _ = job_index;\n}\n\nworker-main"
+  );
 
   const withPrelude = await module.assembleWorkerWgsl("worker-main", {
     queueWgsl: "struct JobMeta { value: u32; };",
@@ -206,6 +219,16 @@ test("assembleWorkerWgsl supports empty jobs and explicit prelude", async () => 
   assert.match(withPrelude, /const PRELUDE_OK: u32 = 1u;/);
   assert.match(withPrelude, /struct JobMeta/);
   assert.match(withPrelude, /process_job__0/);
+});
+
+test("assembleWorkerWgsl can load DAG queue helpers and preserve worker hooks", async () => {
+  const assembled = await assembleWorkerWgsl("worker-main", {
+    queueMode: "dag",
+    jobs: [],
+  });
+
+  assert.match(assembled, /struct ReadyQueue/);
+  assert.match(assembled, /fn complete_job/);
 });
 
 test("assembleWorkerWgsl rejects jobs without process_job", async () => {

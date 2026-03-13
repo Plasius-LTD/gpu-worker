@@ -29,6 +29,8 @@ Each worker-integrated package should publish a logical job manifest containing:
 
 - stable worker `jobType` identifiers,
 - a queue class used for grouping and balancing,
+- optional `priority`, `dependencies`, and `schedulerMode` metadata when jobs
+  form a DAG instead of a flat ready stream,
 - a bounded worker budget ladder,
 - package-local translation from selected budget level to real dispatch
   behavior.
@@ -41,6 +43,7 @@ package.
 
 - stable `jobType` identifiers aligned with worker registration order,
 - queue class labels for coordination and debug grouping,
+- scheduler mode plus dependency metadata for DAG-shaped workloads,
 - budget levels that bound dispatch count, batch size, cadence, and optional
   queue-depth guardrails.
 

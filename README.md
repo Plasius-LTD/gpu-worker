@@ -54,6 +54,22 @@ By default it applies queue compatibility renames (for example `JobMeta` -> `Job
 set `queueCompat: false` to disable that behavior.
 If you are concatenating WGSL manually, `loadQueueWgsl` provides the same
 compatibility renames by default: `loadQueueWgsl({ url, fetcher, queueCompat: false })`.
+Set `queueMode: "dag"` on `loadQueueWgsl(...)` or `assembleWorkerWgsl(...)`
+to assemble against the multi-root DAG-ready queue helpers from
+`@plasius/gpu-lock-free-queue`.
+
+```js
+const shaderCode = await assembleWorkerWgsl(workerWgsl, {
+  preludeWgsl,
+  jobs,
+  queueMode: "dag",
+});
+```
+
+Worker WGSL now calls `complete_job(job_index)` after `process_job(...)`.
+Queue assets from `@plasius/gpu-lock-free-queue` already provide that hook. If
+you pass a custom queue source without it, the assembler appends a no-op shim so
+existing flat queue integrations keep working.
 
 To bypass the registry, pass jobs directly:
 ```js
@@ -147,6 +163,19 @@ const loop = createWorkerLoop({
 - A helper to assemble WGSL modules with queue helpers included.
 - A reference job format for fixed-size job dispatch (u32 indices).
 
+## DAG Queue Modes
+
+`@plasius/gpu-worker` now supports two scheduler assembly modes:
+
+- `flat`: the original lock-free FIFO/worklist execution flow.
+- `dag`: a multi-root, priority-aware ready-queue flow where jobs can declare
+  dependencies and join points through their package-owned manifests.
+
+The worker runtime still stays lock-free and policy-light. It does not resolve
+budgets or decide priorities itself. Instead it exposes the queue mode and the
+completion hook needed by package manifests and `@plasius/gpu-performance` to
+coordinate DAG-shaped workloads.
+
 ## Package Integration Model
 
 `@plasius/gpu-worker` is the preferred execution plane for discrete GPU work
@@ -156,6 +185,8 @@ Package authors should:
 
 - register stable worker job types for each effect family,
 - keep scheduling in terms of compact worklists and bounded dispatches,
+- expose `priority`, `dependencies`, and `schedulerMode` metadata in manifests
+  when jobs form ordered DAG stages instead of a flat queue,
 - let `@plasius/gpu-performance` adjust worker budgets instead of building
   separate package-local governors,
 - expose optional local instrumentation through `createWorkerLoop(..., {
@@ -217,7 +248,7 @@ npm run pack:check
 - `src/index.js`: Helper functions to load/assemble WGSL.
 - `docs/adrs/*`: architectural decisions for worker runtime and scheduling.
 - `docs/tdrs/*`: technical design records for multi-package worker integration.
-- `docs/design/*`: design notes for package integration and future expansion.
+- `docs/design/*`: design notes for package integration, DAG queue modes, and future expansion.
 
 ## Job shape
 Jobs are variable-length payloads stored in a caller-managed buffer. Each job supplies `job_type`, `payload_offset`, and `payload_words` metadata plus a payload stored in the input payload buffer. For simple cases, use a single-word payload containing an index into your workload array.

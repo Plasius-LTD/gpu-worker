@@ -1,4 +1,7 @@
-import { loadQueueWgsl as loadQueueWgslRaw } from "@plasius/gpu-lock-free-queue";
+import {
+  loadSchedulerWgsl as loadSchedulerWgslRaw,
+  schedulerModes as workerSchedulerModes,
+} from "@plasius/gpu-lock-free-queue";
 
 export const workerWgslUrl = (() => {
   if (typeof __IMPORT_META_URL__ !== "undefined") {
@@ -188,6 +191,16 @@ function getQueueCompatMap(source) {
   return [{ from: /\bJobMeta\b/g, to: "JobDesc" }];
 }
 
+function normalizeQueueMode(mode) {
+  const resolved = mode ?? "flat";
+  if (!workerSchedulerModes.includes(resolved)) {
+    throw new Error(
+      `queueMode must be one of: ${workerSchedulerModes.join(", ")}.`
+    );
+  }
+  return resolved;
+}
+
 function applyCompatMap(source, map) {
   if (!map || map.length === 0) {
     return source;
@@ -266,8 +279,11 @@ export async function loadWorkerWgsl(options = {}) {
 }
 
 export async function loadQueueWgsl(options = {}) {
-  const { queueCompat = true, ...rest } = options ?? {};
-  const source = await loadQueueWgslRaw(rest);
+  const { queueCompat = true, queueMode = "flat", ...rest } = options ?? {};
+  const source = await loadSchedulerWgslRaw({
+    mode: normalizeQueueMode(queueMode),
+    ...rest,
+  });
   if (typeof source !== "string") {
     throw new Error("Failed to load queue WGSL source.");
   }
@@ -277,6 +293,13 @@ export async function loadQueueWgsl(options = {}) {
   }
   const compatMap = getQueueCompatMap(source);
   return applyCompatMap(source, compatMap);
+}
+
+function ensureQueueLifecycleHooks(source) {
+  if (/\bfn\s+complete_job\b/.test(source)) {
+    return source;
+  }
+  return `${source}\n\nfn complete_job(job_index: u32) {\n  _ = job_index;\n}`;
 }
 
 export async function loadJobWgsl(options = {}) {
@@ -311,12 +334,21 @@ export async function assembleWorkerWgsl(workerWgsl, options = {}) {
     jobs,
     debug,
     queueCompat = true,
+    queueMode = "flat",
   } = options ?? {};
+  const resolvedQueueMode = normalizeQueueMode(queueMode);
   const rawQueueSource =
-    queueWgsl ?? (await loadQueueWgslRaw({ url: queueUrl, fetcher }));
+    queueWgsl ??
+    (await loadSchedulerWgslRaw({
+      mode: resolvedQueueMode,
+      url: queueUrl,
+      fetcher,
+    }));
   const bodyRaw = workerWgsl ?? (await loadWorkerWgsl({ fetcher }));
   const compatMap = queueCompat ? getQueueCompatMap(rawQueueSource) : null;
-  const queueSource = applyCompatMap(rawQueueSource, compatMap);
+  const queueSource = ensureQueueLifecycleHooks(
+    applyCompatMap(rawQueueSource, compatMap)
+  );
   const preludeRaw =
     preludeWgsl ??
     (preludeUrl

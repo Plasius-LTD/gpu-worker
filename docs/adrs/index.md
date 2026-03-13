@@ -5,3 +5,4 @@
 - [ADR-0003: Job WGSL Registry and Assembly](./adr-0003:%20Job%20WGSL%20Registry%20and%20Assembly.md)
 - [ADR-0004: Multi-Package Worker Coordination](./adr-0004:%20Multi-Package%20Worker%20Coordination.md)
 - [ADR-0005: Optional Worker Loop Telemetry Hooks](./adr-0005:%20Optional%20Worker%20Loop%20Telemetry%20Hooks.md)
+- [ADR-0006: Flat and DAG Queue Assembly Modes](./adr-0006:%20Flat%20and%20DAG%20Queue%20Assembly%20Modes.md)

@@ -30,9 +30,25 @@ Each effect package should provide:
 
 - stable job labels,
 - a queue class for debug grouping and budget coordination,
+- DAG metadata when relevant: `priority`, `dependencies`, and
+  `schedulerMode: "dag"` for jobs that must run in ordered chains or join
+  points,
 - a bounded budget ladder for dispatch frequency and batch size,
 - optional debug instrumentation hooks that are dormant unless enabled by the
   client.
+
+## Queue Modes
+
+`@plasius/gpu-worker` can now assemble against two queue contracts:
+
+- `flat`: legacy FIFO-style ready work.
+- `dag`: multi-root ready queues that publish newly unlocked downstream jobs as
+  dependencies complete.
+
+The worker core still only needs a dequeue entry point plus a
+`complete_job(job_index)` hook after dispatch. That keeps the worker runtime
+compatible with both queue shapes without taking responsibility for DAG policy
+or graph construction.
 
 ## Runtime Telemetry Hooks
 

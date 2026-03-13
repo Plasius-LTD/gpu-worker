@@ -16,11 +16,17 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     package expansion.
   - Optional `createWorkerLoop` telemetry hooks for dispatch samples and
     per-tick summaries with shared `frameId` correlation support.
+  - `queueMode: "dag"` support for loading and assembling against
+    multi-root DAG-ready queue helpers from `@plasius/gpu-lock-free-queue`.
+  - ADR, TDR, and design documentation for flat versus DAG queue assembly
+    contracts.
 
 - **Changed**
   - README guidance now points package authors toward worker-job manifests,
     `@plasius/gpu-performance` budget coordination, and optional
     `@plasius/gpu-debug` instrumentation.
+  - Worker assembly now guarantees a `complete_job(job_index)` hook is present
+    so flat and DAG queue assets share the same worker completion path.
   - Updated patch-level eslint tooling to the latest versions allowed by the
     current semver ranges.
 
