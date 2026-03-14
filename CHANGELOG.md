@@ -15,6 +15,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - DAG queue guidance now treats package manifests as explicit multi-root DAG
     node definitions with priority-lane mapping, rather than loose dependency
     hints.
+  - Updated GitHub Actions workflows to run JavaScript actions on Node 24 and
+    refreshed core workflow action versions.
 
 - **Fixed**
   - (placeholder)
