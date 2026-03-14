@@ -12,6 +12,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.1.10] - 2026-03-14
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
   - DAG queue guidance now treats package manifests as explicit multi-root DAG
     node definitions with priority-lane mapping, rather than loose dependency
     hints.
@@ -196,7 +210,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.10...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
 [0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
@@ -218,3 +232,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [0.1.4]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.4
 [0.1.8]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.8
 [0.1.9]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.9
+[0.1.10]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.10
