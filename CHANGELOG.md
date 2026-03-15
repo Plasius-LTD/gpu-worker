@@ -9,7 +9,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - ADR, TDR, and test-first planning coverage for snapshot-driven
+    scene-preparation DAG manifests in the ray-tracing-first world pipeline.
 
 - **Changed**
   - (placeholder)
