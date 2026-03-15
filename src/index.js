@@ -727,3 +727,382 @@ export function createWorkerLoop(options = {}) {
     },
   };
 }
+
+export const scenePreparationRepresentationBands = Object.freeze([
+  "near",
+  "mid",
+  "far",
+  "horizon",
+]);
+
+export const scenePreparationStageFamilies = Object.freeze([
+  "snapshotSelection",
+  "transformPropagation",
+  "animationPose",
+  "proceduralAnimation",
+  "skinningOrDeformation",
+  "boundsUpdate",
+  "lodSelection",
+  "rtRepresentationSelection",
+  "visibility",
+  "lightAssignment",
+  "renderProxyBuild",
+  "rtInstancePreparation",
+]);
+
+const scenePreparationDefaultStageDependencies = Object.freeze({
+  snapshotSelection: Object.freeze([]),
+  transformPropagation: Object.freeze(["snapshotSelection"]),
+  animationPose: Object.freeze(["transformPropagation"]),
+  proceduralAnimation: Object.freeze(["animationPose"]),
+  skinningOrDeformation: Object.freeze([
+    "animationPose",
+    "proceduralAnimation",
+  ]),
+  boundsUpdate: Object.freeze(["skinningOrDeformation"]),
+  lodSelection: Object.freeze(["boundsUpdate"]),
+  rtRepresentationSelection: Object.freeze(["lodSelection"]),
+  visibility: Object.freeze(["boundsUpdate", "lodSelection"]),
+  lightAssignment: Object.freeze(["visibility"]),
+  renderProxyBuild: Object.freeze(["visibility", "lodSelection"]),
+  rtInstancePreparation: Object.freeze([
+    "visibility",
+    "rtRepresentationSelection",
+  ]),
+});
+
+const scenePreparationBandPriorityWeights = Object.freeze({
+  near: 400,
+  mid: 300,
+  far: 200,
+  horizon: 100,
+});
+
+const scenePreparationImportanceWeights = Object.freeze({
+  low: 0,
+  medium: 15,
+  high: 30,
+  critical: 60,
+});
+
+const scenePreparationStagePriorityWeights = Object.freeze({
+  snapshotSelection: 60,
+  transformPropagation: 54,
+  animationPose: 50,
+  proceduralAnimation: 46,
+  skinningOrDeformation: 42,
+  boundsUpdate: 38,
+  lodSelection: 32,
+  rtRepresentationSelection: 28,
+  visibility: 34,
+  lightAssignment: 24,
+  renderProxyBuild: 22,
+  rtInstancePreparation: 26,
+});
+
+function assertScenePreparationIdentifier(name, value) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${name} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function assertScenePreparationEnum(name, value, allowed) {
+  const normalized = assertScenePreparationIdentifier(name, value);
+  if (!allowed.includes(normalized)) {
+    throw new Error(`${name} must be one of: ${allowed.join(", ")}.`);
+  }
+  return normalized;
+}
+
+function normalizeScenePreparationStages(stages, chunkLabel) {
+  const requested =
+    stages === undefined ? scenePreparationStageFamilies : stages;
+  if (!Array.isArray(requested) || requested.length === 0) {
+    throw new Error(`${chunkLabel}.stages must be a non-empty array when provided.`);
+  }
+
+  const normalized = [...new Set(
+    requested.map((stage, index) =>
+      assertScenePreparationEnum(
+        `${chunkLabel}.stages[${index}]`,
+        stage,
+        scenePreparationStageFamilies
+      )
+    )
+  )];
+
+  return normalized.sort(
+    (left, right) =>
+      scenePreparationStageFamilies.indexOf(left) -
+      scenePreparationStageFamilies.indexOf(right)
+  );
+}
+
+function collectScenePreparationDependencies(
+  stageFamily,
+  includedStages,
+  seen = new Set()
+) {
+  const dependencies =
+    scenePreparationDefaultStageDependencies[stageFamily] ?? [];
+  for (const dependency of dependencies) {
+    if (includedStages.has(dependency)) {
+      seen.add(dependency);
+      continue;
+    }
+    collectScenePreparationDependencies(dependency, includedStages, seen);
+  }
+  return [...seen].sort(
+    (left, right) =>
+      scenePreparationStageFamilies.indexOf(left) -
+      scenePreparationStageFamilies.indexOf(right)
+  );
+}
+
+function buildScenePreparationPriority(chunk, stageFamily) {
+  const bandWeight =
+    scenePreparationBandPriorityWeights[chunk.representationBand] ?? 0;
+  const importanceWeight =
+    scenePreparationImportanceWeights[chunk.gameplayImportance] ?? 0;
+  const stageWeight =
+    scenePreparationStagePriorityWeights[stageFamily] ?? 0;
+
+  return (
+    bandWeight +
+    importanceWeight +
+    stageWeight +
+    (chunk.visible ? 20 : 0) +
+    (chunk.playerRelevant ? 20 : 0) +
+    (chunk.imageCritical ? 15 : 0)
+  );
+}
+
+function buildScenePreparationPriorityLanes(jobs) {
+  const lanes = new Map();
+  for (const job of jobs) {
+    const lane = lanes.get(job.priority) ?? {
+      priority: job.priority,
+      jobIds: [],
+      chunkIds: [],
+    };
+    lane.jobIds.push(job.id);
+    if (!lane.chunkIds.includes(job.chunkId)) {
+      lane.chunkIds.push(job.chunkId);
+    }
+    lanes.set(job.priority, lane);
+  }
+
+  return Object.freeze(
+    [...lanes.values()]
+      .sort((left, right) => right.priority - left.priority)
+      .map((lane) =>
+        Object.freeze({
+          priority: lane.priority,
+          jobIds: Object.freeze([...lane.jobIds]),
+          chunkIds: Object.freeze([...lane.chunkIds]),
+          jobCount: lane.jobIds.length,
+        })
+      )
+  );
+}
+
+function buildScenePreparationTopologicalOrder(jobs) {
+  const indegree = new Map(jobs.map((job) => [job.id, job.dependencies.length]));
+  const dependentsById = new Map(jobs.map((job) => [job.id, []]));
+
+  for (const job of jobs) {
+    for (const dependency of job.dependencies) {
+      dependentsById.get(dependency)?.push(job.id);
+    }
+  }
+
+  const queue = jobs
+    .filter((job) => job.dependencies.length === 0)
+    .sort((left, right) => right.priority - left.priority)
+    .map((job) => job.id);
+  const jobById = new Map(jobs.map((job) => [job.id, job]));
+  const order = [];
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId) {
+      continue;
+    }
+    order.push(currentId);
+    const unlocked = [];
+    for (const dependentId of dependentsById.get(currentId) ?? []) {
+      const next = (indegree.get(dependentId) ?? 0) - 1;
+      indegree.set(dependentId, next);
+      if (next === 0) {
+        unlocked.push(dependentId);
+      }
+    }
+    unlocked
+      .sort(
+        (left, right) =>
+          (jobById.get(right)?.priority ?? 0) -
+          (jobById.get(left)?.priority ?? 0)
+      )
+      .forEach((jobId) => {
+        queue.push(jobId);
+      });
+  }
+
+  if (order.length !== jobs.length) {
+    throw new Error("Scene-preparation manifest contains a cycle.");
+  }
+
+  return Object.freeze(order);
+}
+
+export function createScenePreparationManifest(options = {}) {
+  const snapshotId = assertScenePreparationIdentifier(
+    "snapshotId",
+    options.snapshotId
+  );
+  const chunkEntries = Array.isArray(options.chunks) ? options.chunks : [];
+  if (chunkEntries.length === 0) {
+    throw new Error("createScenePreparationManifest requires at least one chunk.");
+  }
+
+  const normalizedChunks = chunkEntries.map((chunk, index) => {
+    if (!chunk || typeof chunk !== "object" || Array.isArray(chunk)) {
+      throw new Error(`chunks[${index}] must be an object.`);
+    }
+    const chunkLabel = `chunks[${index}]`;
+    if (chunk.mutatesSimulation === true) {
+      throw new Error(
+        `${chunkLabel}.mutatesSimulation cannot be true for render preparation.`
+      );
+    }
+
+    return Object.freeze({
+      chunkId: assertScenePreparationIdentifier(`${chunkLabel}.chunkId`, chunk.chunkId),
+      representationBand: assertScenePreparationEnum(
+        `${chunkLabel}.representationBand`,
+        chunk.representationBand ?? "mid",
+        scenePreparationRepresentationBands
+      ),
+      gameplayImportance: assertScenePreparationEnum(
+        `${chunkLabel}.gameplayImportance`,
+        chunk.gameplayImportance ?? "medium",
+        Object.keys(scenePreparationImportanceWeights)
+      ),
+      visible: chunk.visible !== false,
+      playerRelevant: chunk.playerRelevant === true,
+      imageCritical: chunk.imageCritical === true,
+      stages: normalizeScenePreparationStages(chunk.stages, chunkLabel),
+    });
+  });
+
+  const chunkIds = new Set();
+  for (const chunk of normalizedChunks) {
+    if (chunkIds.has(chunk.chunkId)) {
+      throw new Error(`Duplicate scene-preparation chunk id detected: ${chunk.chunkId}`);
+    }
+    chunkIds.add(chunk.chunkId);
+  }
+
+  const jobs = [];
+  for (const chunk of normalizedChunks) {
+    const includedStages = new Set(chunk.stages);
+    for (const stageFamily of chunk.stages) {
+      const dependencies = collectScenePreparationDependencies(
+        stageFamily,
+        includedStages
+      ).map(
+        (dependency) =>
+          `${snapshotId}:${chunk.chunkId}:${chunk.representationBand}:${dependency}`
+      );
+
+      jobs.push(
+        Object.freeze({
+          id: `${snapshotId}:${chunk.chunkId}:${chunk.representationBand}:${stageFamily}`,
+          snapshotId,
+          chunkId: chunk.chunkId,
+          representationBand: chunk.representationBand,
+          stageFamily,
+          priority: buildScenePreparationPriority(chunk, stageFamily),
+          dependencies: Object.freeze(dependencies),
+          dependencyCount: dependencies.length,
+          root: dependencies.length === 0,
+          authority: "visual",
+          mutatesSimulation: false,
+          gameplayImportance: chunk.gameplayImportance,
+          visible: chunk.visible,
+          playerRelevant: chunk.playerRelevant,
+          imageCritical: chunk.imageCritical,
+        })
+      );
+    }
+  }
+
+  const jobById = new Map(jobs.map((job) => [job.id, job]));
+  let crossChunkDependencyCount = 0;
+  let localJoinCount = 0;
+
+  const finalizedJobs = Object.freeze(
+    jobs.map((job) => {
+      const dependents = jobs
+        .filter((candidate) => candidate.dependencies.includes(job.id))
+        .map((candidate) => candidate.id);
+      const crossChunkDependencies = job.dependencies.filter((dependency) => {
+        const parent = jobById.get(dependency);
+        return parent && parent.chunkId !== job.chunkId;
+      });
+      crossChunkDependencyCount += crossChunkDependencies.length;
+      if (
+        job.dependencies.length > 1 &&
+        crossChunkDependencies.length === 0
+      ) {
+        localJoinCount += 1;
+      }
+
+      return Object.freeze({
+        ...job,
+        dependents: Object.freeze(dependents),
+        dependentCount: dependents.length,
+        unresolvedDependencyCount: job.dependencies.length,
+        localJoin:
+          job.dependencies.length > 1 && crossChunkDependencies.length === 0,
+      });
+    })
+  );
+
+  const graph = Object.freeze({
+    schedulerMode: "dag",
+    jobCount: finalizedJobs.length,
+    chunkCount: normalizedChunks.length,
+    chunkIds: Object.freeze(normalizedChunks.map((chunk) => chunk.chunkId)),
+    representationBands: Object.freeze(
+      [...new Set(normalizedChunks.map((chunk) => chunk.representationBand))]
+    ),
+    roots: Object.freeze(
+      finalizedJobs.filter((job) => job.root).map((job) => job.id)
+    ),
+    chunkRoots: Object.freeze(
+      Object.fromEntries(
+        normalizedChunks.map((chunk) => [
+          chunk.chunkId,
+          finalizedJobs
+            .filter((job) => job.chunkId === chunk.chunkId && job.root)
+            .map((job) => job.id),
+        ])
+      )
+    ),
+    topologicalOrder: buildScenePreparationTopologicalOrder(finalizedJobs),
+    priorityLanes: buildScenePreparationPriorityLanes(finalizedJobs),
+    localJoinCount,
+    crossChunkDependencyCount,
+  });
+
+  return Object.freeze({
+    schemaVersion: 1,
+    owner: "scene-preparation",
+    schedulerMode: "dag",
+    snapshotId,
+    jobs: finalizedJobs,
+    graph,
+  });
+}

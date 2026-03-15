@@ -11,9 +11,14 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Added**
   - ADR, TDR, and test-first planning coverage for snapshot-driven
     scene-preparation DAG manifests in the ray-tracing-first world pipeline.
+  - Added `createScenePreparationManifest(...)` plus scene-preparation
+    representation-band and stage-family exports for snapshot-driven chunk DAG
+    planning.
+  - Added contract tests covering stable snapshot roots, multi-chunk priority
+    lanes, local joins, and render-preparation safety guards.
 
 - **Changed**
-  - (placeholder)
+  - TDR-0004 now reflects the implemented scene-preparation manifest helper.
 
 - **Fixed**
   - (placeholder)

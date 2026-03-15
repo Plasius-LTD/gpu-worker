@@ -158,6 +158,39 @@ const loop = createWorkerLoop({
 });
 ```
 
+`@plasius/gpu-worker` also now exposes a scene-preparation manifest helper for
+snapshot-driven chunk DAG planning:
+
+```js
+import { createScenePreparationManifest } from "@plasius/gpu-worker";
+
+const manifest = createScenePreparationManifest({
+  snapshotId: "visual-snapshot-42",
+  chunks: [
+    {
+      chunkId: "chunk-near-0",
+      representationBand: "near",
+      gameplayImportance: "critical",
+      visible: true,
+      playerRelevant: true,
+    },
+    {
+      chunkId: "chunk-far-3",
+      representationBand: "far",
+      gameplayImportance: "medium",
+      visible: false,
+    },
+  ],
+});
+
+console.log(manifest.graph.chunkRoots);
+console.log(manifest.graph.priorityLanes[0]);
+```
+
+The helper publishes one chunk-local DAG per stable snapshot, keeps joins local
+to chunk stage boundaries, and rejects render-preparation manifests that try to
+mutate authoritative simulation state.
+
 ## What this is
 - A minimal GPU worker layer that combines a lock-free queue with user WGSL jobs.
 - A helper to assemble WGSL modules with queue helpers included.

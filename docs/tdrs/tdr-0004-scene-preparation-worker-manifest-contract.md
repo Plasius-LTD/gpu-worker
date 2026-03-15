@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Goal
 
@@ -21,6 +21,7 @@ Scene-preparation manifests should be able to describe:
   - `far`
   - `horizon`
 - the preparation stage family:
+  - `snapshotSelection`
   - `transformPropagation`
   - `animationPose`
   - `proceduralAnimation`
@@ -59,3 +60,11 @@ Unit tests should prove that:
 - representation-band metadata survives manifest normalization
 - stage ordering rejects invalid cycles such as proxy generation preceding
   bounds or visibility inputs
+
+## Implementation Notes
+
+The initial public helper now ships as
+`createScenePreparationManifest(...)` in `@plasius/gpu-worker`. It models
+snapshot selection as the root stage for each chunk, preserves chunk-local DAG
+joins, publishes priority lanes for ready-queue planning, and rejects
+authoritative simulation mutation during render preparation.
