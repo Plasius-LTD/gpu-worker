@@ -9,6 +9,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.1.11] - 2026-03-15
+
+- **Added**
   - ADR, TDR, and test-first planning coverage for snapshot-driven
     scene-preparation DAG manifests in the ray-tracing-first world pipeline.
   - Added `createScenePreparationManifest(...)` plus scene-preparation
@@ -216,7 +230,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.11...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
 [0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
@@ -239,3 +253,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [0.1.8]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.8
 [0.1.9]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.9
 [0.1.10]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.10
+[0.1.11]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.11
