@@ -44,7 +44,9 @@ async function fetchText(url) {
   try {
     response = await fetch(url);
   } catch (err) {
-    throw new Error(`Failed to fetch ${urlString}: ${err.message}`);
+    throw new Error(`Failed to fetch ${urlString}: ${err.message}`, {
+      cause: err,
+    });
   }
   if (!response.ok) {
     const statusText = response.statusText ? ` ${response.statusText}` : "";
