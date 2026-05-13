@@ -55,17 +55,17 @@
   "author": "Plasius LTD <development@plasius.co.uk>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@plasius/gpu-shared": "^0.1.4",
-    "@plasius/gpu-lock-free-queue": "^0.2.15"
+    "@plasius/gpu-shared": "^0.1.9",
+    "@plasius/gpu-lock-free-queue": "^0.2.18"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.60.0",
     "c8": "^11.0.0",
-    "eslint": "^10.1.0",
-    "globals": "^17.3.0",
-    "tsup": "^8.5.0",
-    "typescript": "^6.0.2"
+    "eslint": "^10.3.0",
+    "globals": "^17.6.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
   },
   "repository": {
     "type": "git",
