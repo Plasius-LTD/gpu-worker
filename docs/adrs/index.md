@@ -8,3 +8,4 @@
 - [ADR-0006: Flat and DAG Queue Assembly Modes](./adr-0006:%20Flat%20and%20DAG%20Queue%20Assembly%20Modes.md)
 - [ADR-0007: Snapshot-Driven Scene Preparation DAGs](./adr-0007:%20Snapshot-Driven%20Scene%20Preparation%20DAGs.md)
 - [ADR-0008: Wavefront Renderer Worker Manifests](./adr-0008:%20Wavefront%20Renderer%20Worker%20Manifests.md)
+- [ADR-0009: Drain-Until-Empty Worker Invocations](./adr-0009:%20Drain-Until-Empty%20Worker%20Invocations.md)

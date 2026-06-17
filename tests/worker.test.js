@@ -122,6 +122,24 @@ test("loadWorkerWgsl uses fetch for the WGSL body", async () => {
   }
 });
 
+test("loadWorkerWgsl publishes drain-until-empty worker semantics", async () => {
+  const source = await loadWorkerWgsl({
+    fetcher: async () => ({
+      ok: true,
+      async text() {
+        return await import("node:fs/promises").then(({ readFile }) =>
+          readFile(new URL("../src/worker.wgsl", import.meta.url), "utf8")
+        );
+      },
+    }),
+  });
+
+  assert.match(source, /override WORKER_MAX_JOBS_PER_INVOCATION: u32 = 0u;/);
+  assert.match(source, /loop \{/);
+  assert.match(source, /processed_jobs = processed_jobs \+ 1u;/);
+  assert.match(source, /if \(ok == 0u\) \{\s+break;/);
+});
+
 test("assembleWorkerWgsl concatenates queue and worker sources", async () => {
   const queueWgsl = await loadQueueWgsl();
   const workerWgsl = "worker-main";

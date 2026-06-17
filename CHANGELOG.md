@@ -9,10 +9,14 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - Added ADR-0009 documenting drain-until-empty worker invocation semantics
+    for queue-backed GPU execution.
 
 - **Changed**
-  - (placeholder)
+  - Changed the published worker WGSL entry point so each invocation keeps
+    dequeuing runnable jobs until the queue is empty by default.
+  - Added the `WORKER_MAX_JOBS_PER_INVOCATION` WGSL override constant so
+    callers can optionally bound per-invocation work.
 
 - **Fixed**
   - (placeholder)
