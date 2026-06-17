@@ -191,6 +191,41 @@ The helper publishes one chunk-local DAG per stable snapshot, keeps joins local
 to chunk stage boundaries, and rejects render-preparation manifests that try to
 mutate authoritative simulation state.
 
+Wavefront renderer packages can publish queue-ready pass DAGs with
+`createWavefrontRendererPassManifest(...)`:
+
+```js
+import { createWavefrontRendererPassManifest } from "@plasius/gpu-worker";
+
+const manifest = createWavefrontRendererPassManifest({
+  frameId: "frame-42",
+  queueClass: "render",
+  tileCount: 16,
+  maxDepth: 6,
+  tilePixelCapacity: 128 * 128,
+  triangleCount: 7,
+  bvhLeafSortCapacity: 8,
+  bvhSortStages: [
+    { compareDistance: 1, sequenceSize: 2 },
+    { compareDistance: 2, sequenceSize: 4 },
+  ],
+  bvhBuildLevels: [
+    { start: 3, count: 3 },
+    { start: 1, count: 2 },
+    { start: 0, count: 1 },
+  ],
+});
+
+console.log(manifest.graph.topologicalOrder);
+console.log(manifest.graph.priorityLanes[0]);
+```
+
+The wavefront manifest models BVH triangle assembly, GPU leaf sorting, sorted
+leaf materialization, bottom-up BVH build levels, primary rays, per-bounce
+intersection/surface/contribution/continuation/compaction stages, accumulation,
+and optional denoise as DAG jobs. This gives renderer packages a shared queue
+shape before those stages move fully behind the lock-free worker runtime.
+
 ## What this is
 - A minimal GPU worker layer that combines a lock-free queue with user WGSL jobs.
 - A helper to assemble WGSL modules with queue helpers included.

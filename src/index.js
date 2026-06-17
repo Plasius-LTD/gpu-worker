@@ -728,6 +728,601 @@ export function createWorkerLoop(options = {}) {
   };
 }
 
+export const wavefrontRendererStageFamilies = Object.freeze([
+  "bvhTriangleAssembly",
+  "bvhLeafSort",
+  "bvhLeafMaterialization",
+  "bvhLevelBuild",
+  "primaryRayGeneration",
+  "intersection",
+  "surfaceResolution",
+  "contribution",
+  "continuation",
+  "compaction",
+  "accumulation",
+  "denoise",
+]);
+
+const wavefrontStagePriorityWeights = Object.freeze({
+  bvhTriangleAssembly: 1000,
+  bvhLeafSort: 990,
+  bvhLeafMaterialization: 985,
+  bvhLevelBuild: 980,
+  primaryRayGeneration: 900,
+  intersection: 860,
+  surfaceResolution: 820,
+  contribution: 780,
+  continuation: 760,
+  compaction: 740,
+  accumulation: 700,
+  denoise: 640,
+});
+
+function assertWavefrontIdentifier(name, value) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${name} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function readWavefrontPositiveInteger(name, value, fallback) {
+  const candidate = value === undefined ? fallback : value;
+  if (
+    typeof candidate !== "number" ||
+    !Number.isInteger(candidate) ||
+    candidate <= 0 ||
+    !Number.isFinite(candidate)
+  ) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  return candidate;
+}
+
+function readWavefrontNonNegativeInteger(name, value, fallback = 0) {
+  const candidate = value === undefined ? fallback : value;
+  if (
+    typeof candidate !== "number" ||
+    !Number.isInteger(candidate) ||
+    candidate < 0 ||
+    !Number.isFinite(candidate)
+  ) {
+    throw new Error(`${name} must be a non-negative integer.`);
+  }
+  return candidate;
+}
+
+function normalizeWavefrontBvhBuildLevels(levels) {
+  if (levels === undefined) {
+    return [];
+  }
+  if (!Array.isArray(levels)) {
+    throw new Error("bvhBuildLevels must be an array when provided.");
+  }
+  return levels.map((level, index) => {
+    if (!level || typeof level !== "object" || Array.isArray(level)) {
+      throw new Error(`bvhBuildLevels[${index}] must be an object.`);
+    }
+    return Object.freeze({
+      start: readWavefrontNonNegativeInteger(
+        `bvhBuildLevels[${index}].start`,
+        level.start
+      ),
+      count: readWavefrontPositiveInteger(
+        `bvhBuildLevels[${index}].count`,
+        level.count,
+        1
+      ),
+    });
+  });
+}
+
+function normalizeWavefrontBvhSortStages(stages) {
+  if (stages === undefined) {
+    return [];
+  }
+  if (!Array.isArray(stages)) {
+    throw new Error("bvhSortStages must be an array when provided.");
+  }
+  return stages.map((stage, index) => {
+    if (!stage || typeof stage !== "object" || Array.isArray(stage)) {
+      throw new Error(`bvhSortStages[${index}] must be an object.`);
+    }
+    return Object.freeze({
+      compareDistance: readWavefrontPositiveInteger(
+        `bvhSortStages[${index}].compareDistance`,
+        stage.compareDistance,
+        1
+      ),
+      sequenceSize: readWavefrontPositiveInteger(
+        `bvhSortStages[${index}].sequenceSize`,
+        stage.sequenceSize,
+        2
+      ),
+    });
+  });
+}
+
+function createWavefrontJob({
+  frameId,
+  id,
+  stageFamily,
+  queueClass,
+  dependencies,
+  tileIndex = null,
+  bounce = null,
+  priorityOffset = 0,
+  workItemCount = 1,
+  bvhLevelIndex = null,
+  bvhNodeStart = null,
+  bvhNodeCount = null,
+  bvhSortStageIndex = null,
+  bvhCompareDistance = null,
+  bvhSequenceSize = null,
+}) {
+  const priority = (wavefrontStagePriorityWeights[stageFamily] ?? 0) + priorityOffset;
+  return Object.freeze({
+    id,
+    frameId,
+    stageFamily,
+    queueClass,
+    jobType: `wavefront.${stageFamily}`,
+    schedulerMode: "dag",
+    dependencies: Object.freeze(dependencies),
+    dependencyCount: dependencies.length,
+    root: dependencies.length === 0,
+    priority,
+    workItemCount,
+    tileIndex,
+    bounce,
+    bvhLevelIndex,
+    bvhNodeStart,
+    bvhNodeCount,
+    bvhSortStageIndex,
+    bvhCompareDistance,
+    bvhSequenceSize,
+    authority: "visual",
+    mutatesSimulation: false,
+  });
+}
+
+function buildWavefrontPriorityLanes(jobs) {
+  const lanes = new Map();
+  for (const job of jobs) {
+    const lane = lanes.get(job.priority) ?? {
+      priority: job.priority,
+      jobIds: [],
+      queueClasses: [],
+    };
+    lane.jobIds.push(job.id);
+    if (!lane.queueClasses.includes(job.queueClass)) {
+      lane.queueClasses.push(job.queueClass);
+    }
+    lanes.set(job.priority, lane);
+  }
+
+  return Object.freeze(
+    [...lanes.values()]
+      .sort((left, right) => right.priority - left.priority)
+      .map((lane) =>
+        Object.freeze({
+          priority: lane.priority,
+          jobIds: Object.freeze([...lane.jobIds]),
+          queueClasses: Object.freeze([...lane.queueClasses]),
+          jobCount: lane.jobIds.length,
+        })
+      )
+  );
+}
+
+function normalizeWavefrontExtraDependencies(extraDependencies) {
+  if (extraDependencies === undefined) {
+    return new Map();
+  }
+  if (!extraDependencies || typeof extraDependencies !== "object" || Array.isArray(extraDependencies)) {
+    throw new Error("extraDependencies must be an object keyed by job id.");
+  }
+  return new Map(
+    Object.entries(extraDependencies).map(([jobId, dependencies]) => {
+      if (!Array.isArray(dependencies)) {
+        throw new Error(`extraDependencies.${jobId} must be an array.`);
+      }
+      return [
+        assertWavefrontIdentifier("extraDependencies key", jobId),
+        Object.freeze(
+          dependencies.map((dependency, index) =>
+            assertWavefrontIdentifier(
+              `extraDependencies.${jobId}[${index}]`,
+              dependency
+            )
+          )
+        ),
+      ];
+    })
+  );
+}
+
+function applyWavefrontExtraDependencies(jobs, extraDependencies) {
+  if (extraDependencies.size === 0) {
+    return jobs;
+  }
+  const jobIds = new Set(jobs.map((job) => job.id));
+  for (const [jobId, dependencies] of extraDependencies) {
+    if (!jobIds.has(jobId)) {
+      throw new Error(`extraDependencies references unknown job "${jobId}".`);
+    }
+    for (const dependency of dependencies) {
+      if (!jobIds.has(dependency)) {
+        throw new Error(
+          `Job "${jobId}" depends on unknown job "${dependency}".`
+        );
+      }
+      if (dependency === jobId) {
+        throw new Error(`Job "${jobId}" cannot depend on itself.`);
+      }
+    }
+  }
+
+  return Object.freeze(
+    jobs.map((job) => {
+      const additions = extraDependencies.get(job.id) ?? [];
+      if (additions.length === 0) {
+        return job;
+      }
+      const dependencies = Object.freeze(
+        [...new Set([...job.dependencies, ...additions])]
+      );
+      return Object.freeze({
+        ...job,
+        dependencies,
+        dependencyCount: dependencies.length,
+        root: dependencies.length === 0,
+      });
+    })
+  );
+}
+
+function buildWavefrontTopologicalOrder(jobs) {
+  const jobIds = new Set(jobs.map((job) => job.id));
+  for (const job of jobs) {
+    for (const dependency of job.dependencies) {
+      if (!jobIds.has(dependency)) {
+        throw new Error(
+          `Job "${job.id}" depends on unknown job "${dependency}".`
+        );
+      }
+      if (dependency === job.id) {
+        throw new Error(`Job "${job.id}" cannot depend on itself.`);
+      }
+    }
+  }
+
+  const indegree = new Map(jobs.map((job) => [job.id, job.dependencies.length]));
+  const dependentsById = new Map(jobs.map((job) => [job.id, []]));
+  const jobById = new Map(jobs.map((job) => [job.id, job]));
+  for (const job of jobs) {
+    for (const dependency of job.dependencies) {
+      dependentsById.get(dependency)?.push(job.id);
+    }
+  }
+
+  const queue = jobs
+    .filter((job) => job.dependencies.length === 0)
+    .sort((left, right) => right.priority - left.priority)
+    .map((job) => job.id);
+  const order = [];
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId) {
+      continue;
+    }
+    order.push(currentId);
+    const unlocked = [];
+    for (const dependentId of dependentsById.get(currentId) ?? []) {
+      const next = (indegree.get(dependentId) ?? 0) - 1;
+      indegree.set(dependentId, next);
+      if (next === 0) {
+        unlocked.push(dependentId);
+      }
+    }
+    unlocked
+      .sort(
+        (left, right) =>
+          (jobById.get(right)?.priority ?? 0) -
+          (jobById.get(left)?.priority ?? 0)
+      )
+      .forEach((jobId) => {
+        queue.push(jobId);
+      });
+  }
+
+  if (order.length !== jobs.length) {
+    throw new Error("Wavefront renderer manifest contains a cycle.");
+  }
+
+  return Object.freeze(order);
+}
+
+export function createWavefrontRendererPassManifest(options = {}) {
+  const frameId = assertWavefrontIdentifier("frameId", options.frameId);
+  const queueClass = assertWavefrontIdentifier(
+    "queueClass",
+    options.queueClass ?? "render"
+  );
+  const tileCount = readWavefrontPositiveInteger(
+    "tileCount",
+    options.tileCount,
+    1
+  );
+  const maxDepth = readWavefrontPositiveInteger(
+    "maxDepth",
+    options.maxDepth,
+    1
+  );
+  const tilePixelCapacity = readWavefrontPositiveInteger(
+    "tilePixelCapacity",
+    options.tilePixelCapacity,
+    1
+  );
+  const bvhBuildLevels = normalizeWavefrontBvhBuildLevels(
+    options.bvhBuildLevels
+  );
+  const bvhSortStages = normalizeWavefrontBvhSortStages(
+    options.bvhSortStages
+  );
+  const bvhLeafSortCapacity = readWavefrontNonNegativeInteger(
+    "bvhLeafSortCapacity",
+    options.bvhLeafSortCapacity,
+    0
+  );
+  const includeBvhBuild =
+    options.includeBvhBuild === true ||
+    bvhBuildLevels.length > 0 ||
+    bvhSortStages.length > 0;
+  const includeDenoise = options.denoise !== false;
+  const jobs = [];
+  let accelerationDependency = null;
+
+  if (includeBvhBuild) {
+    const assemblyId = `${frameId}:bvh:triangleAssembly`;
+    jobs.push(
+      createWavefrontJob({
+        frameId,
+        id: assemblyId,
+        stageFamily: "bvhTriangleAssembly",
+        queueClass,
+        dependencies: [],
+        workItemCount: readWavefrontPositiveInteger(
+          "triangleCount",
+          options.triangleCount,
+          1
+        ),
+      })
+    );
+    accelerationDependency = assemblyId;
+
+    bvhSortStages.forEach((sortStage, index) => {
+      const sortId = `${frameId}:bvh:sort-${index}`;
+      jobs.push(
+        createWavefrontJob({
+          frameId,
+          id: sortId,
+          stageFamily: "bvhLeafSort",
+          queueClass,
+          dependencies: [accelerationDependency],
+          bvhSortStageIndex: index,
+          bvhCompareDistance: sortStage.compareDistance,
+          bvhSequenceSize: sortStage.sequenceSize,
+          workItemCount: bvhLeafSortCapacity,
+          priorityOffset: -index,
+        })
+      );
+      accelerationDependency = sortId;
+    });
+
+    const materializationId = `${frameId}:bvh:leafMaterialization`;
+    jobs.push(
+      createWavefrontJob({
+        frameId,
+        id: materializationId,
+        stageFamily: "bvhLeafMaterialization",
+        queueClass,
+        dependencies: [accelerationDependency],
+        workItemCount: readWavefrontPositiveInteger(
+          "triangleCount",
+          options.triangleCount,
+          1
+        ),
+      })
+    );
+    accelerationDependency = materializationId;
+
+    bvhBuildLevels.forEach((level, index) => {
+      const levelId = `${frameId}:bvh:level-${index}`;
+      jobs.push(
+        createWavefrontJob({
+          frameId,
+          id: levelId,
+          stageFamily: "bvhLevelBuild",
+          queueClass,
+          dependencies: [accelerationDependency],
+          bvhLevelIndex: index,
+          bvhNodeStart: level.start,
+          bvhNodeCount: level.count,
+          workItemCount: level.count,
+          priorityOffset: -index,
+        })
+      );
+      accelerationDependency = levelId;
+    });
+  }
+
+  const tileAccumulationJobs = [];
+  for (let tileIndex = 0; tileIndex < tileCount; tileIndex += 1) {
+    const tilePrefix = `${frameId}:tile-${tileIndex}`;
+    const primaryId = `${tilePrefix}:primaryRayGeneration`;
+    jobs.push(
+      createWavefrontJob({
+        frameId,
+        id: primaryId,
+        stageFamily: "primaryRayGeneration",
+        queueClass,
+        dependencies: accelerationDependency ? [accelerationDependency] : [],
+        tileIndex,
+        workItemCount: tilePixelCapacity,
+      })
+    );
+
+    let previousBounceDependency = primaryId;
+    for (let bounce = 0; bounce < maxDepth; bounce += 1) {
+      const bouncePrefix = `${tilePrefix}:bounce-${bounce}`;
+      const intersectionId = `${bouncePrefix}:intersection`;
+      const surfaceId = `${bouncePrefix}:surfaceResolution`;
+      const contributionId = `${bouncePrefix}:contribution`;
+      const continuationId = `${bouncePrefix}:continuation`;
+      const compactionId = `${bouncePrefix}:compaction`;
+
+      jobs.push(
+        createWavefrontJob({
+          frameId,
+          id: intersectionId,
+          stageFamily: "intersection",
+          queueClass,
+          dependencies: [previousBounceDependency],
+          tileIndex,
+          bounce,
+          workItemCount: tilePixelCapacity,
+        }),
+        createWavefrontJob({
+          frameId,
+          id: surfaceId,
+          stageFamily: "surfaceResolution",
+          queueClass,
+          dependencies: [intersectionId],
+          tileIndex,
+          bounce,
+          workItemCount: tilePixelCapacity,
+        }),
+        createWavefrontJob({
+          frameId,
+          id: contributionId,
+          stageFamily: "contribution",
+          queueClass,
+          dependencies: [surfaceId],
+          tileIndex,
+          bounce,
+          workItemCount: tilePixelCapacity,
+        }),
+        createWavefrontJob({
+          frameId,
+          id: continuationId,
+          stageFamily: "continuation",
+          queueClass,
+          dependencies: [surfaceId],
+          tileIndex,
+          bounce,
+          workItemCount: tilePixelCapacity,
+        }),
+        createWavefrontJob({
+          frameId,
+          id: compactionId,
+          stageFamily: "compaction",
+          queueClass,
+          dependencies: [contributionId, continuationId],
+          tileIndex,
+          bounce,
+          workItemCount: tilePixelCapacity,
+        })
+      );
+      previousBounceDependency = compactionId;
+    }
+
+    const accumulationId = `${tilePrefix}:accumulation`;
+    jobs.push(
+      createWavefrontJob({
+        frameId,
+        id: accumulationId,
+        stageFamily: "accumulation",
+        queueClass,
+        dependencies: [previousBounceDependency],
+        tileIndex,
+        workItemCount: tilePixelCapacity,
+      })
+    );
+    tileAccumulationJobs.push(accumulationId);
+  }
+
+  let denoiseJobId = null;
+  if (includeDenoise) {
+    denoiseJobId = `${frameId}:denoise`;
+    jobs.push(
+      createWavefrontJob({
+        frameId,
+        id: denoiseJobId,
+        stageFamily: "denoise",
+        queueClass,
+        dependencies: tileAccumulationJobs,
+        workItemCount: tileCount * tilePixelCapacity,
+      })
+    );
+  }
+
+  const finalizedJobs = applyWavefrontExtraDependencies(
+    Object.freeze(jobs),
+    normalizeWavefrontExtraDependencies(options.extraDependencies)
+  );
+  const dependentsById = new Map(finalizedJobs.map((job) => [job.id, []]));
+  for (const job of finalizedJobs) {
+    for (const dependency of job.dependencies) {
+      dependentsById.get(dependency)?.push(job.id);
+    }
+  }
+  const jobsWithDependents = Object.freeze(
+    finalizedJobs.map((job) =>
+      Object.freeze({
+        ...job,
+        dependents: Object.freeze(dependentsById.get(job.id) ?? []),
+        dependentCount: dependentsById.get(job.id)?.length ?? 0,
+        localJoin:
+          job.dependencies.length > 1 &&
+          job.dependencies.every((dependency) => dependency.startsWith(`${frameId}:tile-${job.tileIndex}`)),
+      })
+    )
+  );
+
+  return Object.freeze({
+    schemaVersion: 1,
+    owner: "wavefront-renderer",
+    schedulerMode: "dag",
+    frameId,
+    queueClass,
+    tileCount,
+    maxDepth,
+    tilePixelCapacity,
+    denoise: includeDenoise,
+    bvhBuildLevels: Object.freeze(bvhBuildLevels),
+    bvhSortStages: Object.freeze(bvhSortStages),
+    bvhLeafSortCapacity,
+    jobs: jobsWithDependents,
+    graph: Object.freeze({
+      schedulerMode: "dag",
+      jobCount: jobsWithDependents.length,
+      tileCount,
+      maxDepth,
+      roots: Object.freeze(
+        jobsWithDependents.filter((job) => job.root).map((job) => job.id)
+      ),
+      topologicalOrder: buildWavefrontTopologicalOrder(jobsWithDependents),
+      priorityLanes: buildWavefrontPriorityLanes(jobsWithDependents),
+      bvhBuildLevelCount: bvhBuildLevels.length,
+      bvhSortStageCount: bvhSortStages.length,
+      denoiseJobId,
+      tileAccumulationJobs: Object.freeze(tileAccumulationJobs),
+      queueClasses: Object.freeze([...new Set(jobsWithDependents.map((job) => job.queueClass))]),
+    }),
+  });
+}
+
 export const scenePreparationRepresentationBands = Object.freeze([
   "near",
   "mid",
