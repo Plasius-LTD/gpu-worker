@@ -9,6 +9,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.3.0] - 2026-06-17
+
+- **Added**
   - Added ADR-0009 documenting drain-until-empty worker invocation semantics
     for queue-backed GPU execution.
 
@@ -321,7 +335,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.1.16...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.0...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
 [0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
@@ -350,3 +364,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [0.1.14]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.14
 [0.1.15]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.15
 [0.1.16]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.16
+[0.3.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.0
