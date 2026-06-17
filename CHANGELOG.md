@@ -9,6 +9,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.2.1] - 2026-06-17
+
+- **Added**
   - Added `createWavefrontRendererPassManifest(...)` and
     `wavefrontRendererStageFamilies` for queue-backed wavefront renderer pass
     DAGs, including BVH leaf sorting/materialization, BVH build levels,
