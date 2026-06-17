@@ -71,6 +71,13 @@ Queue assets from `@plasius/gpu-lock-free-queue` already provide that hook. If
 you pass a custom queue source without it, the assembler appends a no-op shim so
 existing flat queue integrations keep working.
 
+By default, each worker invocation now drains the queue until no immediately
+runnable work remains. That means a worker that finishes one job immediately
+attempts to dequeue the next job instead of waiting for a host-side resubmit.
+If a caller needs a fairness or watchdog bound, the published WGSL exposes the
+pipeline override constant `WORKER_MAX_JOBS_PER_INVOCATION`; leaving it at the
+default `0` keeps the drain-until-empty behavior enabled.
+
 To bypass the registry, pass jobs directly:
 ```js
 const shaderCode = await assembleWorkerWgsl(workerWgsl, {
@@ -230,6 +237,8 @@ shape before those stages move fully behind the lock-free worker runtime.
 - A minimal GPU worker layer that combines a lock-free queue with user WGSL jobs.
 - A helper to assemble WGSL modules with queue helpers included.
 - A reference job format for fixed-size job dispatch (u32 indices).
+- A worker execution model where active invocations keep pulling runnable work
+  until the queue is empty unless the caller explicitly bounds them.
 
 ## DAG Queue Modes
 
