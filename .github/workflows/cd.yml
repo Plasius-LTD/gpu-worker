@@ -238,6 +238,7 @@ jobs:
           fi
 
           git commit -m "chore(release): persist v${VERSION} metadata"
+          git fetch origin "$RELEASE_BRANCH":"refs/remotes/origin/$RELEASE_BRANCH" || true
           git push -u origin "$RELEASE_BRANCH" --force-with-lease
 
           if [ -n "$(gh pr list --head "$RELEASE_BRANCH" --json number --jq '.[0].number // empty')" ]; then
