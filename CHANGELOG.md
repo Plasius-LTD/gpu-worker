@@ -20,6 +20,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Security**
   - (placeholder)
 
+## [0.3.2] - 2026-06-22
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
 ## [0.3.1] - 2026-06-22
 
 - **Added**
@@ -349,7 +363,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.2...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
 [0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
@@ -380,3 +394,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [0.1.16]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.16
 [0.3.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.0
 [0.3.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.1
+[0.3.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.2
