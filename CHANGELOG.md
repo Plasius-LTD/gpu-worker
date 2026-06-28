@@ -12,6 +12,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.3.3] - 2026-06-28
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
   - Refreshed the published `@plasius/gpu-shared` and `@plasius/gpu-lock-free-queue` dependencies to their latest released versions.
   - (placeholder)
 
@@ -364,7 +378,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.3...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
 [0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
@@ -396,3 +410,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [0.3.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.0
 [0.3.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.1
 [0.3.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.2
+[0.3.3]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.3
