@@ -12,6 +12,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
+  - Refreshed the published `@plasius/gpu-shared` and `@plasius/gpu-lock-free-queue` dependencies to their latest released versions.
   - (placeholder)
 
 - **Fixed**
