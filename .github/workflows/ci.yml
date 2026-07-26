@@ -87,9 +87,11 @@ jobs:
           }
 
       - name: Install Codecov CLI
+        continue-on-error: true
         run: python3 -m pip install --upgrade codecov-cli
 
       - name: Upload coverage to Codecov
+        continue-on-error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
@@ -97,3 +99,22 @@ jobs:
             -n "unittests-${GITHUB_RUN_ID}" \
             -F unittests \
             -f "$LCOV_FILE"
+
+  # BEGIN PLASIUS PUBLIC ARTIFACT INTEGRITY JOB
+  public_artifact_integrity:
+    name: Public artifact integrity
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: Verify public artifact integrity
+        run: node ./scripts/verify-public-artifacts.cjs '--package-dir' '.'
+  # END PLASIUS PUBLIC ARTIFACT INTEGRITY JOB

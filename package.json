@@ -56,7 +56,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@plasius/gpu-lock-free-queue": "^0.3.3",
-    "@plasius/gpu-shared": "^1.0.2"
+    "@plasius/gpu-shared": "^1.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -89,6 +89,8 @@
     }
   ],
   "overrides": {
+    "brace-expansion": "^5.0.8",
+    "esbuild": "^0.28.1",
     "minimatch": "^10.2.1"
   },
   "engines": {
