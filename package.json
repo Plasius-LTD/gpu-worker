@@ -56,14 +56,14 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@plasius/gpu-lock-free-queue": "^0.3.3",
-    "@plasius/gpu-shared": "^1.0.14"
+    "@plasius/gpu-shared": "^1.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "^1.62.1",
     "c8": "^11.0.0",
-    "eslint": "^10.3.0",
-    "globals": "^17.6.0",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"
   },
