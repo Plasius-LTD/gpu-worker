@@ -4,6 +4,19 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 function main() {
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), "package.json"), "utf8")
+  );
+  const declarationPath = packageJson.types;
+  if (
+    typeof declarationPath !== "string" ||
+    !declarationPath.startsWith("./") ||
+    !packageJson.exports?.["."]?.types ||
+    packageJson.exports["."].types !== declarationPath
+  ) {
+    throw new Error("Public package must expose a matching root types entry and types export.");
+  }
+
   const cacheDir = path.resolve(process.cwd(), ".npm-cache-packcheck");
   const output = execSync(
     `npm pack --dry-run --json --ignore-scripts --cache "${cacheDir}"`,
@@ -16,6 +29,14 @@ function main() {
   const parsed = parseNpmPackJson(output);
   const files = Array.isArray(parsed) && parsed[0]?.files ? parsed[0].files : [];
   const paths = files.map((entry) => entry.path);
+
+  const packedDeclarationPath = declarationPath.slice(2);
+  if (!paths.includes(packedDeclarationPath)) {
+    console.error(
+      `Public package check failed. Type declaration is not packed: ${packedDeclarationPath}`
+    );
+    process.exit(1);
+  }
 
   const forbiddenTarballPathPatterns = [
     {
