@@ -10,7 +10,8 @@
 
 A WebGPU worker runtime that builds on `@plasius/gpu-lock-free-queue` to schedule WGSL workloads like ray tracing, physics, and acoustics.
 
-Apache-2.0. ESM + CJS builds. WGSL assets are published in `dist/`.
+Apache-2.0. ESM + CJS builds with a TypeScript declaration contract for the
+public API. WGSL assets and declarations are published in `dist/`.
 
 ## Install
 ```
@@ -319,6 +320,10 @@ npm run test:coverage
 npm run build
 npm run pack:check
 ```
+
+The package root exposes TypeScript declarations through `types` and the
+conditional `types` export. `npm run typecheck` builds the package and compiles
+a strict consumer example against that published package entry point.
 
 ## Files
 - `demo/index.html`: Loads the WebGPU demo.
