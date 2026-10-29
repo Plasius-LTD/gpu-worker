@@ -10,3 +10,4 @@
 - [ADR-0008: Wavefront Renderer Worker Manifests](./adr-0008:%20Wavefront%20Renderer%20Worker%20Manifests.md)
 - [ADR-0009: Drain-Until-Empty Worker Invocations](./adr-0009:%20Drain-Until-Empty%20Worker%20Invocations.md)
 - [ADR-0010: Hosted OIDC Package Publication](./adr-0010-hosted-oidc-package-publication.md)
+- [ADR-0011: Approved Self-Hosted Trusted Branch CI](./adr-0011-trusted-branch-ci.md)
