@@ -17,10 +17,12 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Fixed**
+  - Restricted CI to approved self-hosted trusted branch events, with credential-free checkout, bounded jobs and admission regression coverage.
   - Added exact-commit CI dispatch and disabled package-manager cache finalization in both hosted validation jobs.
   - (placeholder)
 
 - **Security**
+  - Updated the audit-blocking brace-expansion override from 5.0.9 to 5.0.12 without changing runtime dependencies.
   - Removed the npm write-token path, added a fail-closed npm 11.5.1-or-newer OIDC guard, and denied fork PR code access to reviewed CI.
   - Pinned patched transitive npm dependencies to clear the current audit baseline.
   - Moved reviewed CI to explicit GitHub-hosted runners while retaining the same-repository pull-request guard.

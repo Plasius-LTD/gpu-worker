@@ -347,10 +347,23 @@ Set `output_stride` in queue params to the maximum payload size you want copied 
 
 CI keeps the administrative contributor registry outside Git and npm package
 artifacts using exact, case-normalised path checks. CI runs on approved
-GitHub-hosted runners for same-repository pull requests and `main`, with
-package-manager cache finalization disabled; fork PR code is denied.
+self-hosted `[self-hosted, Linux, X64]` runners in `Public CI - Quarantined`.
+Only branch pushes and manual branch validation in `Plasius-LTD/gpu-worker`
+are eligible; pull requests, forks and tags cannot execute these jobs. Runner
+admission is restricted separately to reviewed workflow revisions. For a
+reviewed branch, an operator may temporarily admit its immutable workflow SHA
+and locked branch ref, verify runner-group policy and repository membership
+are unchanged, then remove only those entries after validation. Checkout
+credentials and package-manager caches are disabled; jobs have timeouts and
+per-ref concurrency. No caller-controlled runner or hosted CI fallback exists.
 Publication uses the GitHub-hosted `production` job with Node 24 and a pinned
 npm 11.6.2 client. It is token-free and proceeds only while the prepared SHA
 is the exact `main` head after successful push-triggered CI. Do not dispatch CD
-until the npm trusted-publisher binding is verified.
+until the npm trusted-publisher binding is verified and an authorized maintainer
+confirms the next version has never been used, including removed versions
+(see [release prerequisite #52](https://github.com/Plasius-LTD/gpu-worker/issues/52)).
+The inherited `platform.public-artifact-integrity.enabled` flag controls staged
+restoration; mandatory integrity and publication checks are unconditional.
+Rollback disables the affected workflow/channel and removes temporary runner
+admission; it never restores the administrative path or a token fallback.
 <!-- END PLASIUS RELEASE INTEGRITY -->
