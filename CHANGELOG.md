@@ -8,83 +8,68 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+### Fixed
+
+- Restore automatic schema-template npm publication and validate renewed trusted publishing with a sealed package inventory.
+
 - **Added**
   - Published root TypeScript declarations and added strict public API type validation.
 
 - **Changed**
   - Refreshed compatible @plasius/* lockfile resolutions to the latest published releases.
  - Bound npm publication to the exact prepared `main` commit after successful push-triggered CI.
-  - (placeholder)
 
 - **Fixed**
   - Added exact-commit CI dispatch and disabled package-manager cache finalization in both hosted validation jobs.
-  - (placeholder)
 
 - **Security**
   - Removed the npm write-token path, added a fail-closed npm 11.5.1-or-newer OIDC guard, and denied fork PR code access to reviewed CI.
   - Pinned patched transitive npm dependencies to clear the current audit baseline.
   - Moved reviewed CI to explicit GitHub-hosted runners while retaining the same-repository pull-request guard.
   - Added fail-closed source and npm-package admission for the administrative contributor registry and pinned the CI/CD runtime to Node.js 24.18.0 LTS.
-  - (placeholder)
 
 ## [0.3.4] - 2026-07-01
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
   - Updated runtime GPU dependencies to `@plasius/gpu-shared` `^1.0.2` and
     `@plasius/gpu-lock-free-queue` `^0.3.3`.
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.3.3] - 2026-06-28
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
   - Refreshed the published `@plasius/gpu-shared` and `@plasius/gpu-lock-free-queue` dependencies to their latest released versions.
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.3.2] - 2026-06-22
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.3.1] - 2026-06-22
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.3.0] - 2026-06-17
 
@@ -99,10 +84,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     callers can optionally bound per-invocation work.
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.2.1] - 2026-06-17
 
@@ -113,83 +96,60 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     breadth-first bounce stages, accumulation, and denoise joins.
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.16] - 2026-06-01
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.15] - 2026-05-13
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.14] - 2026-05-13
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.13] - 2026-04-02
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.12] - 2026-03-23
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.11] - 2026-03-15
 
@@ -206,15 +166,12 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - TDR-0004 now reflects the implemented scene-preparation manifest helper.
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.10] - 2026-03-14
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
   - DAG queue guidance now treats package manifests as explicit multi-root DAG
@@ -227,10 +184,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     the Codecov CLI.
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.9] - 2026-03-13
 
@@ -260,24 +215,18 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     current semver ranges.
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.8] - 2026-03-04
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.4] - 2026-03-01
 
@@ -296,16 +245,12 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [0.1.3] - 2026-02-28
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.2] - 2026-01-24
 
@@ -331,7 +276,6 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Reduced diagonal banding artifacts in the demo lighting pass.
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.1] - 2026-01-23
 
@@ -350,21 +294,16 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Demo can load a local queue WGSL to avoid mismatched dependency versions.
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.0] - 2026-01-22
 
 - **Added**
-  - (placeholder)
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.0-beta.1] - 2026-01-22
 
@@ -378,7 +317,6 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - CJS builds no longer warn on `import.meta` when resolving `worker.wgsl`.
 
 - **Security**
-  - (placeholder)
 
 ## [0.1.0-beta.1]
 
@@ -412,13 +350,10 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Initial release.
 
 - **Changed**
-  - (placeholder)
 
 - **Fixed**
-  - (placeholder)
 
 - **Security**
-  - (placeholder)
 [0.1.3]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.3
 [0.1.4]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.4
 [0.1.8]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.8

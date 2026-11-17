@@ -1,0 +1,30 @@
+{
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "legal/CLA.md",
+    "legal/CORPORATE_CLA.md",
+    "legal/INDIVIDUAL_CLA.md"
+  ],
+  "paths": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "dist/index.cjs",
+    "dist/index.cjs.map",
+    "dist/index.d.ts",
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/worker.wgsl",
+    "legal/CLA.md",
+    "legal/CORPORATE_CLA.md",
+    "legal/INDIVIDUAL_CLA.md",
+    "package.json",
+    "src/index.d.ts",
+    "src/index.js",
+    "src/worker.wgsl"
+  ]
+}

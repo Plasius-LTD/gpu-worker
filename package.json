@@ -14,7 +14,9 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "legal"
+    "legal/CLA.md",
+    "legal/CORPORATE_CLA.md",
+    "legal/INDIVIDUAL_CLA.md"
   ],
   "exports": {
     ".": {
@@ -39,8 +41,10 @@
     "test:unit": "node --test",
     "test:e2e": "npx playwright install chromium && playwright test",
     "test:coverage": "c8 --reporter=lcov --reporter=text node --test",
-    "pack:check": "node scripts/verify-public-package.cjs",
-    "prepublishOnly": "npm run build && npm run pack:check"
+    "pack:check": "node scripts/release-changelog.mjs check CHANGELOG.md && npm run privacy:check && node scripts/verify-public-package.cjs",
+    "prepublishOnly": "npm run build && npm run pack:check",
+    "privacy:check": "node scripts/verify-private-artifacts.cjs",
+    "test:privacy": "node --experimental-test-coverage --test-coverage-include=scripts/private-artifact-policy.cjs --test-coverage-lines=80 --test-coverage-functions=80 --test-coverage-branches=60 --test tests/private-artifact-policy.test.cjs tests/schema-release.test.cjs"
   },
   "keywords": [
     "webgpu",
