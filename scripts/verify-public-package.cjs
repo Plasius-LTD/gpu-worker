@@ -3,7 +3,14 @@ const { execSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const {
+  collectRepositoryArtifactPaths, comparePackageArtifactAllowlist,
+  findPackageFilesPolicyViolations, findPrivateArtifactViolations,
+} = require("./private-artifact-policy.cjs");
+const { files: EXPECTED_PACKAGE_FILES, paths: EXPECTED_PACKED_PATHS } = require("./package-artifacts.json");
+
 function main() {
+  if (verifyReleaseInputs(process.argv.slice(2))) return;
   const packageJson = JSON.parse(
     fs.readFileSync(path.resolve(process.cwd(), "package.json"), "utf8")
   );
@@ -29,6 +36,7 @@ function main() {
   const parsed = parseNpmPackJson(output);
   const files = Array.isArray(parsed) && parsed[0]?.files ? parsed[0].files : [];
   const paths = files.map((entry) => entry.path);
+  verifyPackagePathInventory(paths);
 
   const packedDeclarationPath = declarationPath.slice(2);
   if (!paths.includes(packedDeclarationPath)) {
@@ -190,4 +198,47 @@ function collectFiles(root, extensions) {
   return files;
 }
 
-main();
+
+function verifyPackagePathInventory(paths) {
+  const violations = findPrivateArtifactViolations(paths);
+  if (violations.length) {
+    throw new Error("Packed output contains prohibited private artifact path metadata; values were not logged.");
+  }
+  const inventory = comparePackageArtifactAllowlist(paths, EXPECTED_PACKED_PATHS);
+  if (inventory.missingPaths.length || inventory.unexpectedPaths.length) {
+    throw new Error(`Packed paths differ from the exact allowlist (${inventory.missingPaths.length} missing, ${inventory.unexpectedPaths.length} unexpected); values were not logged.`);
+  }
+}
+
+function verifyReleaseInputs(argv) {
+  if (argv.length === 1 && argv[0] === "--inventory-stdin") {
+    const input = fs.readFileSync(0);
+    if (input.byteLength > 16 * 1024 * 1024) throw new Error("Packed path inventory exceeds the 16 MiB limit.");
+    verifyPackagePathInventory(input.toString("utf8").split("\n").filter((entry) => entry.length > 0));
+    console.log("Sealed package inventory check passed.");
+    return true;
+  }
+  if (argv.length) throw new Error("Unsupported public package check arguments.");
+  let repositoryPaths;
+  try { repositoryPaths = collectRepositoryArtifactPaths(process.cwd()); }
+  catch { throw new Error("Repository path metadata could not be evaluated; details were not logged."); }
+  if (findPrivateArtifactViolations(repositoryPaths).length) {
+    throw new Error("Prohibited private artifact path metadata was found; values were not logged.");
+  }
+  const metadata = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), "package.json"), "utf8"));
+  if (findPackageFilesPolicyViolations(metadata.files, EXPECTED_PACKAGE_FILES).length) {
+    throw new Error("package.json files policy failed; values were not logged.");
+  }
+  return false;
+}
+
+if (require.main === module) {
+  try { main(); }
+  catch (error) {
+    console.error(error.code ? "Public package check failed; details were not logged." : error.message);
+    process.exitCode = 1;
+  } finally {
+    fs.rmSync(path.resolve(process.cwd(), ".npm-cache-packcheck"), { recursive: true, force: true });
+  }
+}
+module.exports = { EXPECTED_PACKED_PATHS, verifyPackagePathInventory };
