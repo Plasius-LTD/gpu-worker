@@ -8,6 +8,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+- Refresh npm dependencies and patched glob/minimatch resolutions in coverage tooling.
+
 ## [0.3.5] - 2026-11-17
 
 ### Fixed
