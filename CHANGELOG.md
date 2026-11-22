@@ -8,6 +8,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-11-22
+
 - Consume the verified upstream security releases from the weekly dependency rollout; retain existing runtime contracts.
 
 ## [0.3.6] - 2026-11-22
@@ -347,7 +349,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ---
 
-[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.6...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/gpu-worker/compare/v0.3.7...HEAD
 [0.1.0-beta.1]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0-beta.1
 [0.1.0]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.0
 [0.1.2]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.1.2
@@ -380,3 +382,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [0.3.4]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.4
 [0.3.5]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.5
 [0.3.6]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.6
+[0.3.7]: https://github.com/Plasius-LTD/gpu-worker/releases/tag/v0.3.7
